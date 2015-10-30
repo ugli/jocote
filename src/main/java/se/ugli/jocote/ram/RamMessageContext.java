@@ -10,12 +10,12 @@ class RamMessageContext implements MessageContext {
     private final Map<String, Object> headers;
     private final Map<String, Object> properties;
 
-    public RamMessageContext(final Map<String, Object> headers, final Map<String, Object> properties) {
+    RamMessageContext(final Map<String, Object> headers, final Map<String, Object> properties) {
         this.headers = headers;
         this.properties = properties;
     }
 
-    public RamMessageContext(final Message message) {
+    RamMessageContext(final Message message) {
         this.headers = message.headers;
         this.properties = message.properties;
     }

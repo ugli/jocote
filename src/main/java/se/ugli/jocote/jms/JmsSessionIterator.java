@@ -56,17 +56,17 @@ class JmsSessionIterator<T> implements SessionIterator<T> {
 
     @Override
     public void close() throws IOException {
-        if (!closable && lastMessage != null)
-            throw new JocoteException("You have to acknowledge or leave messages before closing");
         CloseUtil.close(queueBrowser);
         CloseUtil.close(jmsConsumer);
         CloseUtil.close(session);
+        if (!closable && lastMessage != null)
+            throw new JocoteException("You have to acknowledge or leave messages before closing");
     }
 
     @Override
     public boolean hasNext() {
         try {
-            return queueBrowser.getEnumeration().hasMoreElements();
+            return queueBrowser.getEnumeration().nextElement() != null;
         }
         catch (final JMSException e) {
             throw new JocoteException(e);

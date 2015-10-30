@@ -5,6 +5,7 @@ import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.Map;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
+import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Queue;
@@ -21,7 +23,6 @@ import se.ugli.jocote.Connection;
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionConsumer;
-import se.ugli.jocote.SessionIterable;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.support.SimpleConsumer;
 
@@ -76,7 +77,12 @@ public class JmsConnection implements Connection {
         try {
             session = connection.createSession(false, CLIENT_ACKNOWLEDGE.mode);
             messageConsumer = session.createConsumer(destination);
-            return sendReceive(consumer, messageConsumer.receive(receiveTimeout));
+            final Message message = messageConsumer.receive(receiveTimeout);
+            final JmsSessionMessageContext cxt = new JmsSessionMessageContext(message);
+            final T result = consumer.receive(MessageFactory.createObjectMessage(message), cxt);
+            if (cxt.isClosable())
+                return result;
+            throw new JocoteException("You have to acknowledge or leave message");
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -88,29 +94,19 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> Iterable<T> iterable() {
-        return iterable(Integer.MAX_VALUE, new SimpleConsumer<T>());
+    public <T> Iterator<T> iterator() {
+        return iterator(new SimpleConsumer<T>());
     }
 
     @Override
-    public <T> Iterable<T> iterable(final Consumer<T> consumer) {
-        return iterable(Integer.MAX_VALUE, consumer);
-    }
-
-    @Override
-    public <T> Iterable<T> iterable(final int limit) {
-        return iterable(limit, new SimpleConsumer<T>());
-    }
-
-    @Override
-    public <T> Iterable<T> iterable(final int limit, final Consumer<T> consumer) {
+    public <T> Iterator<T> iterator(final Consumer<T> consumer) {
         final List<T> result = new LinkedList<T>();
         T next = get(consumer);
-        while (next != null && limit != result.size()) {
+        while (next != null) {
             result.add(next);
             next = get(consumer);
         }
-        return result;
+        return result.iterator();
     }
 
     @Override
@@ -126,26 +122,6 @@ public class JmsConnection implements Connection {
         catch (final JMSException e) {
             throw new JocoteException(e);
         }
-    }
-
-    @Override
-    public <T> SessionIterable<T> sessionIterable() {
-        return sessionIterable(Integer.MAX_VALUE, new SimpleConsumer<T>());
-    }
-
-    @Override
-    public <T> SessionIterable<T> sessionIterable(final Consumer<T> consumer) {
-        return sessionIterable(Integer.MAX_VALUE, consumer);
-    }
-
-    @Override
-    public <T> SessionIterable<T> sessionIterable(final int limit) {
-        return sessionIterable(limit, new SimpleConsumer<T>());
-    }
-
-    @Override
-    public <T> SessionIterable<T> sessionIterable(final int limit, final Consumer<T> consumer) {
-        return new JmsSessionIterable<T>(connection, destination, limit, limit, consumer);
     }
 
     @Override

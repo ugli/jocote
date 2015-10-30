@@ -2,6 +2,7 @@ package se.ugli.jocote.ram;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -10,8 +11,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Consumer;
+import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionConsumer;
-import se.ugli.jocote.SessionIterable;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.support.SimpleConsumer;
@@ -43,35 +44,30 @@ class RamConnection implements Connection {
     @Override
     public <T> T get(final SessionConsumer<T> consumer) {
         final Message message = queue.poll();
-        if (message != null)
-            return consumer.receive(message.body, new RamSessionMessageContext(message, queue));
+        if (message != null) {
+            final RamSessionMessageContext cxt = new RamSessionMessageContext(message, queue);
+            final T result = consumer.receive(message.body, cxt);
+            if (cxt.isClosable())
+                return result;
+            throw new JocoteException("You have to acknowledge or leave message");
+        }
         return null;
     }
 
     @Override
-    public <T> Iterable<T> iterable() {
-        return iterable(Integer.MAX_VALUE, new SimpleConsumer<T>());
+    public <T> Iterator<T> iterator() {
+        return iterator(new SimpleConsumer<T>());
     }
 
     @Override
-    public <T> Iterable<T> iterable(final Consumer<T> consumer) {
-        return iterable(Integer.MAX_VALUE, consumer);
-    }
-
-    @Override
-    public <T> Iterable<T> iterable(final int limit) {
-        return iterable(limit, new SimpleConsumer<T>());
-    }
-
-    @Override
-    public <T> Iterable<T> iterable(final int limit, final Consumer<T> consumer) {
+    public <T> Iterator<T> iterator(final Consumer<T> consumer) {
         final List<T> result = new LinkedList<T>();
         T t = get(consumer);
-        while (t != null && limit != result.size()) {
+        while (t != null) {
             result.add(t);
             t = get(consumer);
         }
-        return result;
+        return result.iterator();
     }
 
     @Override
@@ -89,33 +85,13 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public <T> SessionIterable<T> sessionIterable() {
-        return sessionIterable(Integer.MAX_VALUE, new SimpleConsumer<T>());
-    }
-
-    @Override
-    public <T> SessionIterable<T> sessionIterable(final Consumer<T> consumer) {
-        return sessionIterable(Integer.MAX_VALUE, consumer);
-    }
-
-    @Override
-    public <T> SessionIterable<T> sessionIterable(final int limit) {
-        return sessionIterable(limit, new SimpleConsumer<T>());
-    }
-
-    @Override
-    public <T> SessionIterable<T> sessionIterable(final int limit, final Consumer<T> consumer) {
-        return new RamSessionIterable<T>(limit, consumer, queue);
-    }
-
-    @Override
     public <T> SessionIterator<T> sessionIterator() {
         return sessionIterator(new SimpleConsumer<T>());
     }
 
     @Override
     public <T> SessionIterator<T> sessionIterator(final Consumer<T> consumer) {
-        return new RamSessionIterator(queue, consumer);
+        return new RamSessionIterator<T>(queue, consumer);
     }
 
     Subscription addSubscrition(final Consumer<Object> consumer) {

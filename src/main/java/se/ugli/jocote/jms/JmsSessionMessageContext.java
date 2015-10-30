@@ -8,12 +8,15 @@ import se.ugli.jocote.SessionMessageContext;
 
 class JmsSessionMessageContext extends JmsMessageContext implements SessionMessageContext {
 
+    private boolean closable;
+
     JmsSessionMessageContext(final Message message) {
         super(message);
     }
 
     @Override
     public void acknowledgeMessage() {
+        closable = true;
         try {
             message.acknowledge();
         }
@@ -24,6 +27,11 @@ class JmsSessionMessageContext extends JmsMessageContext implements SessionMessa
 
     @Override
     public void leaveMessage() {
+        closable = true;
+    }
+
+    boolean isClosable() {
+        return closable;
     }
 
 }
