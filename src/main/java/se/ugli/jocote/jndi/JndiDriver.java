@@ -7,9 +7,9 @@ import javax.naming.NamingException;
 
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Driver;
+import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.jms.JmsConnection;
-import se.ugli.jocote.jms.JmsException;
 import se.ugli.jocote.jms.JmsSubscription;
 
 public class JndiDriver implements Driver {
@@ -21,7 +21,7 @@ public class JndiDriver implements Driver {
             return new InitialContext();
         }
         catch (final NamingException e) {
-            throw new JmsException(e);
+            throw new JocoteException(e);
         }
     }
 
@@ -46,7 +46,7 @@ public class JndiDriver implements Driver {
             return new JmsConnection(connectionFactory(url), destination(url));
         }
         catch (final NamingException e) {
-            throw new JmsException(e);
+            throw new JocoteException(e);
         }
     }
 
@@ -68,7 +68,7 @@ public class JndiDriver implements Driver {
             return new JmsSubscription(connectionFactory(url), consumer);
         }
         catch (final NamingException e) {
-            throw new JmsException(e);
+            throw new JocoteException(e);
         }
     }
 

@@ -1,5 +1,8 @@
 package se.ugli.jocote.jms;
 
+import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
+import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -8,53 +11,38 @@ import javax.jms.MessageListener;
 import javax.jms.Session;
 
 import se.ugli.jocote.Consumer;
+import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Subscription;
 
 public class JmsSubscription implements Subscription, MessageListener {
 
-    private final boolean transacted = false;
-    private final int acknowledgeMode = AcknowledgeMode.AUTO_ACKNOWLEDGE.mode;
     private final Connection connection;
-    private final Session session;
     private final Consumer<Object> consumer;
+    private final Session session;
 
     public JmsSubscription(final ConnectionFactory connectionFactory, final Consumer<Object> consumer) {
         this.consumer = consumer;
         try {
             this.connection = connectionFactory.createConnection();
-            this.session = connection.createSession(transacted, acknowledgeMode);
+            connection.start();
+            this.session = connection.createSession(false, AUTO_ACKNOWLEDGE.mode);
             session.setMessageListener(this);
         }
         catch (final JMSException e) {
-            throw new JmsException(e);
+            throw new JocoteException(e);
         }
 
     }
 
     @Override
     public void close() {
-        try {
-            session.close();
-        }
-        catch (final JMSException e) {
-            e.printStackTrace();
-        }
-        try {
-            connection.close();
-        }
-        catch (final JMSException e) {
-            e.printStackTrace();
-        }
+        CloseUtil.close(session);
+        CloseUtil.close(connection);
     }
 
     @Override
     public void onMessage(final Message message) {
-        try {
-            consumer.receive(MessageFactory.createObjectMessage(message), new JmsMessageContext(message));
-        }
-        catch (final JMSException e) {
-            throw new JmsException(e);
-        }
+        sendReceive(consumer, message);
     }
 
 }

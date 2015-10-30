@@ -1,87 +1,116 @@
 package se.ugli.jocote.jms;
 
-import java.lang.reflect.InvocationTargetException;
+import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
+import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
+import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
+
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+import javax.jms.Queue;
 import javax.jms.Session;
 
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Consumer;
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.SessionConsumer;
+import se.ugli.jocote.SessionIterable;
+import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.support.SimpleConsumer;
 
 public class JmsConnection implements Connection {
 
-    private final boolean transacted = false;
-    private final int acknowledgeMode = AcknowledgeMode.AUTO_ACKNOWLEDGE.mode;
+    private final javax.jms.Connection connection;
+    private final Destination destination;
     private final long receiveTimeout = 10;
 
-    private final javax.jms.Connection connection;
-    private final Session session;
-    private final MessageConsumer messageConsumer;
-    private final MessageProducer messageProducer;
+    private MessageConsumer _messageConsumer;
+    private MessageProducer _messageProducer;
+    private Session _session;
 
     public JmsConnection(final ConnectionFactory connectionFactory, final Destination destination) {
+        this.destination = destination;
         try {
             this.connection = connectionFactory.createConnection();
-            this.session = connection.createSession(transacted, acknowledgeMode);
-            this.messageConsumer = session.createConsumer(destination);
-            this.messageProducer = session.createProducer(destination);
             connection.start();
         }
         catch (final JMSException e) {
-            throw new JmsException(e);
+            throw new JocoteException(e);
         }
     }
 
     @Override
     public void close() {
+        CloseUtil.close(_messageConsumer);
+        CloseUtil.close(_messageProducer);
+        CloseUtil.close(_session);
+        CloseUtil.close(connection);
+    }
+
+    @Override
+    public <T> T get() {
+        return get(new SimpleConsumer<T>());
+    }
+
+    @Override
+    public <T> T get(final Consumer<T> consumer) {
         try {
-            messageConsumer.close();
+            return sendReceive(consumer, messageConsumer().receive(receiveTimeout));
         }
         catch (final JMSException e) {
-            e.printStackTrace();
-        }
-        try {
-            messageProducer.close();
-        }
-        catch (final JMSException e) {
-            e.printStackTrace();
-        }
-        try {
-            session.close();
-        }
-        catch (final JMSException e) {
-            e.printStackTrace();
-        }
-        try {
-            connection.close();
-        }
-        catch (final JMSException e) {
-            e.printStackTrace();
+            throw new JocoteException(e);
         }
     }
 
     @Override
-    public <T> T getOne(final Consumer<T> consumer) {
+    public <T> T get(final SessionConsumer<T> consumer) {
+        Session session = null;
+        MessageConsumer messageConsumer = null;
         try {
-            final Message message = messageConsumer.receive(receiveTimeout);
-            return consumer.receive(MessageFactory.createObjectMessage(message), new JmsMessageContext(message));
+            session = connection.createSession(false, CLIENT_ACKNOWLEDGE.mode);
+            messageConsumer = session.createConsumer(destination);
+            return sendReceive(consumer, messageConsumer.receive(receiveTimeout));
         }
         catch (final JMSException e) {
-            throw new JmsException(e);
+            throw new JocoteException(e);
+        }
+        finally {
+            CloseUtil.close(messageConsumer);
+            CloseUtil.close(session);
         }
     }
 
     @Override
-    public <T> T getOne() {
-        return getOne(new SimpleConsumer<T>());
+    public <T> Iterable<T> iterable() {
+        return iterable(Integer.MAX_VALUE, new SimpleConsumer<T>());
+    }
+
+    @Override
+    public <T> Iterable<T> iterable(final Consumer<T> consumer) {
+        return iterable(Integer.MAX_VALUE, consumer);
+    }
+
+    @Override
+    public <T> Iterable<T> iterable(final int limit) {
+        return iterable(limit, new SimpleConsumer<T>());
+    }
+
+    @Override
+    public <T> Iterable<T> iterable(final int limit, final Consumer<T> consumer) {
+        final List<T> result = new LinkedList<T>();
+        T next = get(consumer);
+        while (next != null && limit != result.size()) {
+            result.add(next);
+            next = get(consumer);
+        }
+        return result;
     }
 
     @Override
@@ -92,25 +121,76 @@ public class JmsConnection implements Connection {
     @Override
     public void put(final Object message, final Map<String, Object> headers, final Map<String, Object> properties) {
         try {
-            messageProducer.send(MessageFactory.createJmsMessage(session, message, headers, properties));
+            messageProducer().send(MessageFactory.createJmsMessage(session(), message, headers, properties));
         }
         catch (final JMSException e) {
-            throw new JmsException(e);
+            throw new JocoteException(e);
         }
-        catch (final NoSuchMethodException e) {
-            throw new JmsException(e);
+    }
+
+    @Override
+    public <T> SessionIterable<T> sessionIterable() {
+        return sessionIterable(Integer.MAX_VALUE, new SimpleConsumer<T>());
+    }
+
+    @Override
+    public <T> SessionIterable<T> sessionIterable(final Consumer<T> consumer) {
+        return sessionIterable(Integer.MAX_VALUE, consumer);
+    }
+
+    @Override
+    public <T> SessionIterable<T> sessionIterable(final int limit) {
+        return sessionIterable(limit, new SimpleConsumer<T>());
+    }
+
+    @Override
+    public <T> SessionIterable<T> sessionIterable(final int limit, final Consumer<T> consumer) {
+        return new JmsSessionIterable<T>(connection, destination, limit, limit, consumer);
+    }
+
+    @Override
+    public <T> SessionIterator<T> sessionIterator() {
+        return sessionIterator(new SimpleConsumer<T>());
+    }
+
+    @Override
+    public <T> SessionIterator<T> sessionIterator(final Consumer<T> consumer) {
+        if (destination instanceof Queue)
+            return new JmsSessionIterator<T>(connection, (Queue) destination, receiveTimeout, consumer);
+        else
+            throw new JocoteException("Jms SessionIterator can only use queues as destination");
+    }
+
+    private MessageConsumer messageConsumer() {
+        try {
+            if (_messageConsumer == null)
+                _messageConsumer = session().createConsumer(destination);
+            return _messageConsumer;
         }
-        catch (final SecurityException e) {
-            throw new JmsException(e);
+        catch (final JMSException e) {
+            throw new JocoteException(e);
         }
-        catch (final IllegalAccessException e) {
-            throw new JmsException(e);
+    }
+
+    private MessageProducer messageProducer() {
+        try {
+            if (_messageProducer == null)
+                _messageProducer = session().createProducer(destination);
+            return _messageProducer;
         }
-        catch (final IllegalArgumentException e) {
-            throw new JmsException(e);
+        catch (final JMSException e) {
+            throw new JocoteException(e);
         }
-        catch (final InvocationTargetException e) {
-            throw new JmsException(e);
+    }
+
+    private Session session() {
+        try {
+            if (_session == null)
+                _session = connection.createSession(false, AUTO_ACKNOWLEDGE.mode);
+            return _session;
+        }
+        catch (final JMSException e) {
+            throw new JocoteException(e);
         }
     }
 

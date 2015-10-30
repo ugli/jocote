@@ -1,11 +1,15 @@
 package se.ugli.jocote;
 
-import java.util.Map;
+import java.util.Set;
 
 public interface MessageContext {
 
-    Map<String, Object> getHeaders();
+    Set<String> getHeaderNames();
 
-    Map<String, Object> getProperties();
+    <T> T getHeader(String headerName);
+
+    Set<String> getPropertyNames();
+
+    <T> T getProperty(String propertyName);
 
 }

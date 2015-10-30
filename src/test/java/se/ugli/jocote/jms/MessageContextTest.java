@@ -2,8 +2,6 @@ package se.ugli.jocote.jms;
 
 import static org.junit.Assert.assertThat;
 
-import java.util.Map;
-
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
@@ -18,8 +16,7 @@ public class MessageContextTest {
         final TextMessage message = new ActiveMQTextMessage();
         message.setJMSMessageID("hej");
         final JmsMessageContext context = new JmsMessageContext(message);
-        final Map<String, Object> headers = context.getHeaders();
-        assertThat((String) headers.get("MessageID"), CoreMatchers.equalTo("hej"));
+        assertThat((String) context.getHeader("MessageID"), CoreMatchers.equalTo("hej"));
     }
 
 }

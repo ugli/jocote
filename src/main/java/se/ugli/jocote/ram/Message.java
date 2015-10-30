@@ -1,4 +1,4 @@
-package se.ugli.jocote.linkedqueue;
+package se.ugli.jocote.ram;
 
 import java.util.Map;
 
