@@ -15,7 +15,8 @@ import se.ugli.jocote.MessageContext;
 
 class JmsMessageContext implements MessageContext {
 
-    private static Map<String, Object> createHeaders(final Message message) {
+    @SuppressWarnings("unused")
+    private static Map<String, Object> createHeadersReflection(final Message message) {
         final HashMap<String, Object> result = new HashMap<String, Object>();
         if (message != null)
             for (final Method messageMethod : message.getClass().getMethods()) {
@@ -36,6 +37,34 @@ class JmsMessageContext implements MessageContext {
                 }
             }
         return result;
+    }
+
+    private static Map<String, Object> createHeaders(final Message message) {
+        final HashMap<String, Object> result = new HashMap<String, Object>();
+        if (message != null)
+            try {
+                putHeadedIfPresent(message, result, "CorrelationID", message.getJMSCorrelationID());
+                putHeadedIfPresent(message, result, "CorrelationIDAsBytes", message.getJMSCorrelationIDAsBytes());
+                putHeadedIfPresent(message, result, "DeliveryMode", message.getJMSDeliveryMode());
+                putHeadedIfPresent(message, result, "Destination", message.getJMSDestination());
+                putHeadedIfPresent(message, result, "Expiration", message.getJMSExpiration());
+                putHeadedIfPresent(message, result, "MessageID", message.getJMSMessageID());
+                putHeadedIfPresent(message, result, "Priority", message.getJMSPriority());
+                putHeadedIfPresent(message, result, "Redelivered", message.getJMSRedelivered());
+                putHeadedIfPresent(message, result, "ReplyTo", message.getJMSReplyTo());
+                putHeadedIfPresent(message, result, "Timestamp", message.getJMSTimestamp());
+                putHeadedIfPresent(message, result, "Type", message.getJMSType());
+            }
+            catch (final JMSException e) {
+                throw new JocoteException(e);
+            }
+        return result;
+    }
+
+    private static void putHeadedIfPresent(final Message message, final HashMap<String, Object> result, final String name,
+            final Object value) throws JMSException {
+        if (value != null)
+            result.put(name, value);
     }
 
     @SuppressWarnings("unchecked")
