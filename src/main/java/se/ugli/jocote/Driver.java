@@ -6,6 +6,6 @@ public interface Driver {
 
     Connection getConnection(String url);
 
-    Subscription subscribe(String url, Consumer<Object> consumer);
+    <T> Subscription<T> subscribe(String url, Consumer<T> consumer);
 
 }

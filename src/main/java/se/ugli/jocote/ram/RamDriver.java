@@ -24,7 +24,7 @@ public class RamDriver implements Driver {
     }
 
     @Override
-    public Subscription subscribe(final String url, final Consumer<Object> consumer) {
+    public <T> Subscription<T> subscribe(final String url, final Consumer<T> consumer) {
         return connection(url).addSubscrition(consumer);
     }
 

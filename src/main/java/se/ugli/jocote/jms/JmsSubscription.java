@@ -5,8 +5,10 @@ import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
+import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.Session;
 
@@ -14,19 +16,21 @@ import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Subscription;
 
-public class JmsSubscription implements Subscription, MessageListener {
+public class JmsSubscription<T> implements Subscription<T>, MessageListener {
 
     private final Connection connection;
-    private final Consumer<Object> consumer;
+    private final Consumer<T> consumer;
     private final Session session;
+    private final MessageConsumer messageConsumer;
 
-    public JmsSubscription(final ConnectionFactory connectionFactory, final Consumer<Object> consumer) {
+    public JmsSubscription(final ConnectionFactory connectionFactory, final Consumer<T> consumer, final Destination destination) {
         this.consumer = consumer;
         try {
-            this.connection = connectionFactory.createConnection();
+            connection = connectionFactory.createConnection();
+            session = connection.createSession(false, AUTO_ACKNOWLEDGE.mode);
+            messageConsumer = session.createConsumer(destination);
+            messageConsumer.setMessageListener(this);
             connection.start();
-            this.session = connection.createSession(false, AUTO_ACKNOWLEDGE.mode);
-            session.setMessageListener(this);
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -36,6 +40,7 @@ public class JmsSubscription implements Subscription, MessageListener {
 
     @Override
     public void close() {
+        CloseUtil.close(messageConsumer);
         CloseUtil.close(session);
         CloseUtil.close(connection);
     }

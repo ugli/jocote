@@ -2,6 +2,6 @@ package se.ugli.jocote;
 
 import java.io.Closeable;
 
-public interface Subscription extends Closeable {
+public interface Subscription<T> extends Closeable {
 
 }

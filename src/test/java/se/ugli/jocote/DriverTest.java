@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,15 +36,23 @@ public class DriverTest {
     }
 
     private Connection connection;
+    private final String url;
 
     public DriverTest(final String testName, final String url) {
+        this.url = url;
+    }
+
+    @Before
+    public void clearQueue() throws IOException {
+        connection = DriverManager.getConnection(url);
+        for (final Iterator<Object> i = connection.iterator(); i.hasNext();)
+            i.next();
+        connection.close();
         connection = DriverManager.getConnection(url);
     }
 
     @After
     public void close() throws IOException {
-        for (final Iterator<String> i = connection.iterator(); i.hasNext();)
-            i.next();
         connection.close();
         connection = null;
     }
@@ -206,6 +215,62 @@ public class DriverTest {
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(4950));
         iterator.close();
+    }
+
+    private class IntWrap {
+        int i = 0;
+
+        @Override
+        public String toString() {
+            return "IntWrap [i=" + i + "]";
+        }
+
+    }
+
+    @Test
+    public void shouldGetValuesWhenSubscribe() throws IOException, InterruptedException {
+        for (int i = 0; i < 100; i++)
+            connection.put(String.valueOf(i));
+        final IntWrap sum = new IntWrap();
+        final IntWrap count = new IntWrap();
+        final Subscription<String> subscription = DriverManager.subscribe(url, new Consumer<String>() {
+
+            @Override
+            public String receive(final Object message, final MessageContext cxt) {
+                final String next = (String) message;
+                count.i++;
+                sum.i += Integer.parseInt(next);
+                return next;
+            }
+        });
+        Thread.sleep(10);
+        subscription.close();
+        assertThat(count.i, equalTo(100));
+        assertThat(sum.i, equalTo(4950));
+        assertThat(connection.get(), nullValue());
+    }
+
+    @Test
+    public void shouldGetValuesAfterSubscribe() throws IOException, InterruptedException {
+        final IntWrap sum = new IntWrap();
+        final IntWrap count = new IntWrap();
+        final Subscription<String> subscription = DriverManager.subscribe(url, new Consumer<String>() {
+
+            @Override
+            public String receive(final Object message, final MessageContext cxt) {
+                final String next = (String) message;
+                count.i++;
+                sum.i += Integer.parseInt(next);
+                return next;
+            }
+        });
+        for (int i = 0; i < 100; i++)
+            connection.put(String.valueOf(i));
+        Thread.sleep(10);
+        subscription.close();
+        assertThat(count.i, equalTo(100));
+        assertThat(sum.i, equalTo(4950));
+        assertThat(connection.get(), nullValue());
     }
 
 }

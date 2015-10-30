@@ -20,7 +20,7 @@ import se.ugli.jocote.support.SimpleConsumer;
 class RamConnection implements Connection {
 
     private final Queue<Message> queue = new ConcurrentLinkedQueue<Message>();
-    private final List<Consumer<Object>> subscribers = new ArrayList<Consumer<Object>>();
+    private final List<Consumer<?>> subscribers = new ArrayList<Consumer<?>>();
 
     @Override
     public void close() {
@@ -80,7 +80,7 @@ class RamConnection implements Connection {
         if (subscribers.isEmpty())
             queue.offer(new Message(body, headers, properties));
         else
-            for (final Consumer<Object> consumer : subscribers)
+            for (final Consumer<?> consumer : subscribers)
                 consumer.receive(body, new RamMessageContext(headers, properties));
     }
 
@@ -94,11 +94,11 @@ class RamConnection implements Connection {
         return new RamSessionIterator<T>(queue, consumer);
     }
 
-    Subscription addSubscrition(final Consumer<Object> consumer) {
+    <T> Subscription<T> addSubscrition(final Consumer<T> consumer) {
         for (final Message message : queue)
             consumer.receive(message.body, new RamMessageContext(message));
         subscribers.add(consumer);
-        return new Subscription() {
+        return new Subscription<T>() {
 
             @Override
             public void close() {

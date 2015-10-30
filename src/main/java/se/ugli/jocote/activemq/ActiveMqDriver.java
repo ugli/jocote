@@ -26,9 +26,9 @@ public class ActiveMqDriver implements Driver {
     }
 
     @Override
-    public Subscription subscribe(final String urlStr, final Consumer<Object> consumer) {
+    public <T> Subscription<T> subscribe(final String urlStr, final Consumer<T> consumer) {
         final ActiveMqUrl url = new ActiveMqUrl(urlStr);
-        return new JmsSubscription(connectionFactory(url), consumer);
+        return new JmsSubscription<T>(connectionFactory(url), consumer, queue(url));
     }
 
     private ConnectionFactory connectionFactory(final ActiveMqUrl url) {
