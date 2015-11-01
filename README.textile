@@ -1,0 +1,17 @@
+!https://raw.githubusercontent.com/ugli/jocote/gh-pages/images/logo.png!
+
+h1. Welcome to the Jocote wiki!
+
+<pre><code>
+    import static org.hamcrest.CoreMatchers.*;  
+    import static org.junit.Assert.*;  
+    import se.ugli.jocote.*;  
+    import se.ugli.jocote.activemq.ActiveMqDriver;  
+    
+    DriverManager.register(new ActiveMqDriver());  
+    Connection connection = DriverManager.getConnection("jms:activemq:queue@localhost:61616:TEST");  
+    connection.put("hello world");  
+    String message = connection.get();  
+    assertThat(message, equalTo("hello world"));  
+    connection.close();  
+</code></pre>
