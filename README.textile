@@ -1,6 +1,6 @@
 !https://raw.githubusercontent.com/ugli/jocote/gh-pages/images/logo.png!
 
-h1. Welcome to the Jocote wiki!
+h3. Jocote - JMS made easy
 
 <pre><code>
     import static org.hamcrest.CoreMatchers.*;  
