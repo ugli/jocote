@@ -7,16 +7,16 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import se.ugli.jocote.Connection;
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.QueueConnection;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.support.SimpleConsumer;
 
-class RamConnection implements Connection {
+class RamQueueConnection implements QueueConnection {
 
     private final Queue<Message> queue = new ConcurrentLinkedQueue<Message>();
     private final List<Consumer<?>> subscribers = new ArrayList<Consumer<?>>();
@@ -96,9 +96,14 @@ class RamConnection implements Connection {
             @Override
             public void close() {
                 subscribers.remove(consumer);
-                RamConnection.this.close();
+                RamQueueConnection.this.close();
             }
         };
+    }
+
+    @Override
+    public boolean hasNext() {
+        return !queue.isEmpty();
     }
 
 }

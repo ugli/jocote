@@ -4,7 +4,7 @@ public interface Driver {
 
     boolean acceptsURL(String url);
 
-    Connection getConnection(String url);
+    QueueConnection getQueueConnection(String url);
 
     <T> Subscription<T> subscribe(String url, Consumer<T> consumer);
 

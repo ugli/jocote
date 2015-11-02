@@ -1,15 +1,16 @@
 package se.ugli.jocote.jndi;
 
 import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
+import javax.jms.Queue;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Driver;
 import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.QueueConnection;
 import se.ugli.jocote.Subscription;
-import se.ugli.jocote.jms.JmsConnection;
+import se.ugli.jocote.jms.JmsQueueConnection;
 import se.ugli.jocote.jms.JmsSubscription;
 
 public class JndiDriver implements Driver {
@@ -41,19 +42,19 @@ public class JndiDriver implements Driver {
     }
 
     @Override
-    public JmsConnection getConnection(final String url) {
+    public QueueConnection getQueueConnection(final String url) {
         try {
-            return new JmsConnection(connectionFactory(url), destination(url));
+            return new JmsQueueConnection(connectionFactory(url), queue(url));
         }
         catch (final NamingException e) {
             throw new JocoteException(e);
         }
     }
 
-    private Destination destination(final String url) throws NamingException {
+    private Queue queue(final String url) throws NamingException {
         final String subUrl = url.replace(URL_PREFIX, "");
         final String jndiName = subUrl.substring(subUrl.indexOf(":") + 1, subUrl.length());
-        return (Destination) context.lookup(jndiName);
+        return (Queue) context.lookup(jndiName);
     }
 
     private ConnectionFactory connectionFactory(final String url) throws NamingException {
@@ -65,7 +66,7 @@ public class JndiDriver implements Driver {
     @Override
     public <T> Subscription<T> subscribe(final String url, final Consumer<T> consumer) {
         try {
-            return new JmsSubscription<T>(connectionFactory(url), consumer, destination(url));
+            return new JmsSubscription<T>(connectionFactory(url), consumer, queue(url));
         }
         catch (final NamingException e) {
             throw new JocoteException(e);

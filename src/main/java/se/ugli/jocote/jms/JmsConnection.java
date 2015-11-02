@@ -60,7 +60,7 @@ public class JmsConnection implements Connection {
     @Override
     public <T> T get(final Consumer<T> consumer) {
         try {
-            return sendReceive(consumer, messageConsumer().receive(receiveTimeout));
+            return sendReceive(consumer, jmsMessageConsumer().receive(receiveTimeout));
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -97,7 +97,7 @@ public class JmsConnection implements Connection {
 
     @Override
     public <T> Iterator<T> iterator(final Consumer<T> consumer) {
-        return new JmsIterator<T>(messageConsumer(), receiveTimeout, consumer);
+        return new JmsIterator<T>(jmsMessageConsumer(), receiveTimeout, consumer);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class JmsConnection implements Connection {
     @Override
     public void put(final Object message, final Map<String, Object> headers, final Map<String, Object> properties) {
         try {
-            messageProducer().send(MessageFactory.createJmsMessage(session(), message, headers, properties));
+            jmsMessageProducer().send(MessageFactory.createJmsMessage(jmsSession(), message, headers, properties));
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -125,10 +125,10 @@ public class JmsConnection implements Connection {
         return new JmsSessionIterator<T>(connection, destination, receiveTimeout, consumer);
     }
 
-    private MessageConsumer messageConsumer() {
+    public MessageConsumer jmsMessageConsumer() {
         try {
             if (_messageConsumer == null)
-                _messageConsumer = session().createConsumer(destination);
+                _messageConsumer = jmsSession().createConsumer(destination);
             return _messageConsumer;
         }
         catch (final JMSException e) {
@@ -136,10 +136,10 @@ public class JmsConnection implements Connection {
         }
     }
 
-    private MessageProducer messageProducer() {
+    public MessageProducer jmsMessageProducer() {
         try {
             if (_messageProducer == null)
-                _messageProducer = session().createProducer(destination);
+                _messageProducer = jmsSession().createProducer(destination);
             return _messageProducer;
         }
         catch (final JMSException e) {
@@ -147,7 +147,7 @@ public class JmsConnection implements Connection {
         }
     }
 
-    private Session session() {
+    public Session jmsSession() {
         try {
             if (_session == null)
                 _session = connection.createSession(false, AUTO_ACKNOWLEDGE.mode);
@@ -156,6 +156,10 @@ public class JmsConnection implements Connection {
         catch (final JMSException e) {
             throw new JocoteException(e);
         }
+    }
+
+    public javax.jms.Connection jmsConnection() {
+        return connection;
     }
 
 }
