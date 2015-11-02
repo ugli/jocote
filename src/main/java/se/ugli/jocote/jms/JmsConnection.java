@@ -5,9 +5,6 @@ import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 import javax.jms.ConnectionFactory;
@@ -16,11 +13,11 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
-import javax.jms.Queue;
 import javax.jms.Session;
 
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Consumer;
+import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
@@ -100,13 +97,7 @@ public class JmsConnection implements Connection {
 
     @Override
     public <T> Iterator<T> iterator(final Consumer<T> consumer) {
-        final List<T> result = new LinkedList<T>();
-        T next = get(consumer);
-        while (next != null) {
-            result.add(next);
-            next = get(consumer);
-        }
-        return result.iterator();
+        return new JmsIterator<T>(messageConsumer(), receiveTimeout, consumer);
     }
 
     @Override
@@ -131,10 +122,7 @@ public class JmsConnection implements Connection {
 
     @Override
     public <T> SessionIterator<T> sessionIterator(final Consumer<T> consumer) {
-        if (destination instanceof Queue)
-            return new JmsSessionIterator<T>(connection, (Queue) destination, receiveTimeout, consumer);
-        else
-            throw new JocoteException("Jms SessionIterator can only use queues as destination");
+        return new JmsSessionIterator<T>(connection, destination, receiveTimeout, consumer);
     }
 
     private MessageConsumer messageConsumer() {

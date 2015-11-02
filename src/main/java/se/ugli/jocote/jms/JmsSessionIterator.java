@@ -6,11 +6,10 @@ import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 import java.io.IOException;
 
 import javax.jms.Connection;
+import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
-import javax.jms.Queue;
-import javax.jms.QueueBrowser;
 import javax.jms.Session;
 
 import se.ugli.jocote.Consumer;
@@ -23,18 +22,17 @@ class JmsSessionIterator<T> implements SessionIterator<T> {
     private final Session session;
     private final MessageConsumer jmsConsumer;
     private final Consumer<T> jocoteConsumer;
-    private final QueueBrowser queueBrowser;
 
     private Message lastMessage;
     private boolean closable = false;
 
-    JmsSessionIterator(final Connection connection, final Queue queue, final long receiveTimeout, final Consumer<T> jocoteConsumer) {
+    JmsSessionIterator(final Connection connection, final Destination destination, final long receiveTimeout,
+            final Consumer<T> jocoteConsumer) {
         try {
             this.jocoteConsumer = jocoteConsumer;
             this.receiveTimeout = receiveTimeout;
             session = connection.createSession(false, CLIENT_ACKNOWLEDGE.mode);
-            jmsConsumer = session.createConsumer(queue);
-            queueBrowser = session.createBrowser(queue);
+            jmsConsumer = session.createConsumer(destination);
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -56,21 +54,10 @@ class JmsSessionIterator<T> implements SessionIterator<T> {
 
     @Override
     public void close() throws IOException {
-        CloseUtil.close(queueBrowser);
         CloseUtil.close(jmsConsumer);
         CloseUtil.close(session);
         if (!closable && lastMessage != null)
             throw new JocoteException("You have to acknowledge or leave messages before closing");
-    }
-
-    @Override
-    public boolean hasNext() {
-        try {
-            return queueBrowser.getEnumeration().nextElement() != null;
-        }
-        catch (final JMSException e) {
-            throw new JocoteException(e);
-        }
     }
 
     @Override

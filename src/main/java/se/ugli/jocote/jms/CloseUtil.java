@@ -11,8 +11,10 @@ class CloseUtil {
 
     static void close(final Connection connection) {
         try {
-            if (connection != null)
+            if (connection != null) {
+                connection.stop();
                 connection.close();
+            }
         }
         catch (final JMSException e) {
             e.printStackTrace();

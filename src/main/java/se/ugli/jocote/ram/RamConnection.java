@@ -2,8 +2,6 @@ package se.ugli.jocote.ram;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -11,6 +9,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Consumer;
+import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
@@ -61,13 +60,7 @@ class RamConnection implements Connection {
 
     @Override
     public <T> Iterator<T> iterator(final Consumer<T> consumer) {
-        final List<T> result = new LinkedList<T>();
-        T t = get(consumer);
-        while (t != null) {
-            result.add(t);
-            t = get(consumer);
-        }
-        return result.iterator();
+        return new RamIterator<T>(queue, consumer);
     }
 
     @Override

@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.junit.After;
 import org.junit.Before;
@@ -45,8 +44,9 @@ public class DriverTest {
     @Before
     public void clearQueue() throws IOException {
         connection = DriverManager.getConnection(url);
-        for (final Iterator<Object> i = connection.iterator(); i.hasNext();)
-            i.next();
+        final Iterator<Object> iterator = connection.iterator();
+        while (iterator.next() != null)
+            ;
         connection.close();
         connection = DriverManager.getConnection(url);
     }
@@ -147,37 +147,43 @@ public class DriverTest {
 
     @Test
     public void shouldConsumeIterator() throws IOException {
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
         final Iterator<String> iterator = connection.iterator();
         int sum = 0;
         int count = 0;
-        while (iterator.hasNext()) {
-            final String next = iterator.next();
-            count++;
-            sum += Integer.parseInt(next);
+        String next = iterator.next();
+        while (next != null) {
+            next = iterator.next();
+            if (next != null) {
+                count++;
+                sum += Integer.parseInt(next);
+            }
         }
         assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(4950));
+        assertThat(sum, equalTo(5050));
         assertThat(connection.get(), nullValue());
     }
 
     @Test
     public void shouldAcknolageIterator() throws IOException {
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
         final SessionIterator<String> iterator = connection.sessionIterator();
         int sum = 0;
         int count = 0;
-        while (iterator.hasNext()) {
-            final String next = iterator.next();
-            count++;
-            sum += Integer.parseInt(next);
+        String next = iterator.next();
+        while (next != null) {
+            next = iterator.next();
+            if (next != null) {
+                count++;
+                sum += Integer.parseInt(next);
+            }
         }
         iterator.acknowledgeMessages();
         iterator.close();
         assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(4950));
+        assertThat(sum, equalTo(5050));
         assertThat(connection.get(), nullValue());
     }
 
@@ -188,10 +194,11 @@ public class DriverTest {
         final SessionIterator<String> iterator = connection.sessionIterator();
         int sum = 0;
         int count = 0;
-        while (iterator.hasNext()) {
-            final String next = iterator.next();
+        String next = iterator.next();
+        while (next != null) {
             count++;
             sum += Integer.parseInt(next);
+            next = iterator.next();
         }
         iterator.leaveMessages();
         iterator.close();
@@ -202,18 +209,21 @@ public class DriverTest {
 
     @Test(expected = JocoteException.class)
     public void shouldThrowThenNotLeavingOrAcknowlageMessageIterator() throws IOException {
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
         final SessionIterator<String> iterator = connection.sessionIterator();
         int sum = 0;
         int count = 0;
-        while (iterator.hasNext()) {
-            final String next = iterator.next();
-            count++;
-            sum += Integer.parseInt(next);
+        String next = iterator.next();
+        while (next != null) {
+            next = iterator.next();
+            if (next != null) {
+                count++;
+                sum += Integer.parseInt(next);
+            }
         }
         assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(4950));
+        assertThat(sum, equalTo(5050));
         iterator.close();
     }
 

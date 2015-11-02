@@ -1,7 +1,6 @@
 package se.ugli.jocote;
 
 import java.io.Closeable;
-import java.util.Iterator;
 import java.util.Map;
 
 public interface Connection extends Closeable {

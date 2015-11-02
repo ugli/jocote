@@ -20,11 +20,6 @@ public class RamSessionIterator<T> implements SessionIterator<T> {
     }
 
     @Override
-    public boolean hasNext() {
-        return !connectionQueue.isEmpty();
-    }
-
-    @Override
     public T next() {
         final Message message = connectionQueue.poll();
         if (message != null) {
