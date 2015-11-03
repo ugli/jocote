@@ -1,4 +1,4 @@
-package se.ugli.jocote.ibmmq;
+package se.ugli.jocote.ibm.mq;
 
 import java.util.Collections;
 import java.util.HashMap;

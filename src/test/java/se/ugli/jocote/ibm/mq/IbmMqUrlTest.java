@@ -1,9 +1,11 @@
-package se.ugli.jocote.ibmmq;
+package se.ugli.jocote.ibm.mq;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
+
+import se.ugli.jocote.ibm.mq.IbmMqUrl;
 
 public class IbmMqUrlTest {
 
