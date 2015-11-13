@@ -6,8 +6,8 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 
+import com.ibm.mq.jms.MQConnectionFactory;
 import com.ibm.mq.jms.MQQueue;
-import com.ibm.mq.jms.MQQueueConnectionFactory;
 
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Driver;
@@ -18,6 +18,9 @@ import se.ugli.jocote.jms.JmsQueueConnection;
 import se.ugli.jocote.jms.JmsSubscription;
 
 public class IbmMqDriver implements Driver {
+
+    private static final String TRANSPORT_TYPE_PARAM_NAME = "TransportType";
+    private static final int TRANSPORT_TYPE_DEFAULT_VALUE = 1;
 
     @Override
     public boolean acceptsURL(final String url) {
@@ -38,9 +41,13 @@ public class IbmMqDriver implements Driver {
 
     private ConnectionFactory connectionFactory(final IbmMqUrl url) {
         try {
-            final MQQueueConnectionFactory connectionFactory = new MQQueueConnectionFactory();
+            final MQConnectionFactory connectionFactory = new MQConnectionFactory();
+            connectionFactory.setTransportType(TRANSPORT_TYPE_DEFAULT_VALUE);
             for (final Entry<String, String> param : url.params.entrySet())
-                connectionFactory.setStringProperty(param.getKey(), param.getValue());
+                if (param.getKey().equalsIgnoreCase(TRANSPORT_TYPE_PARAM_NAME))
+                    connectionFactory.setTransportType(Integer.parseInt(param.getValue()));
+                else
+                    connectionFactory.setStringProperty(param.getKey(), param.getValue());
             return connectionFactory;
         }
         catch (final JMSException e) {
