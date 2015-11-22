@@ -1,11 +1,9 @@
 package se.ugli.jocote.ibm.mq;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import org.junit.Test;
 
-import se.ugli.jocote.ibm.mq.IbmMqUrl;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 public class IbmMqUrlTest {
 
@@ -15,7 +13,7 @@ public class IbmMqUrlTest {
     }
 
     @Test
-    public void shouldGiveQueueWitharams() {
+    public void shouldGiveQueueWithParams() {
         assertThat(new IbmMqUrl("jms:ibmmq:queue@AbC?TransportType=1").queue, equalTo("AbC"));
     }
 

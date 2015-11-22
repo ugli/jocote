@@ -2,8 +2,8 @@ package se.ugli.jocote.activemq;
 
 class ActiveMqUrl {
 
-    static final String defaultPort = "61616";
-    static final String URL_PREFIX = "jms:activemq:queue@";
+    private static final String defaultPort = "61616";
+    private static final String URL_PREFIX = "jms:activemq:queue@";
 
     static boolean acceptsURL(final String url) {
         return url.startsWith(URL_PREFIX);

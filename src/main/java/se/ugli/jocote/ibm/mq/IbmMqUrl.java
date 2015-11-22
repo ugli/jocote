@@ -7,7 +7,7 @@ import java.util.StringTokenizer;
 
 class IbmMqUrl {
 
-    static final String URL_PREFIX = "jms:ibmmq:queue@";
+    private static final String URL_PREFIX = "jms:ibmmq:queue@";
 
     static boolean acceptsURL(final String url) {
         return url.startsWith(URL_PREFIX);

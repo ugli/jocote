@@ -1,21 +1,15 @@
 package se.ugli.jocote.ibm.mq;
 
-import java.util.Map.Entry;
+import com.ibm.mq.jms.MQConnectionFactory;
+import com.ibm.mq.jms.MQQueue;
+import se.ugli.jocote.*;
+import se.ugli.jocote.jms.JmsConnection;
+import se.ugli.jocote.jms.JmsSubscription;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Queue;
-
-import com.ibm.mq.jms.MQConnectionFactory;
-import com.ibm.mq.jms.MQQueue;
-
-import se.ugli.jocote.Consumer;
-import se.ugli.jocote.Driver;
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.QueueConnection;
-import se.ugli.jocote.Subscription;
-import se.ugli.jocote.jms.JmsQueueConnection;
-import se.ugli.jocote.jms.JmsSubscription;
+import java.util.Map.Entry;
 
 public class IbmMqDriver implements Driver {
 
@@ -28,9 +22,9 @@ public class IbmMqDriver implements Driver {
     }
 
     @Override
-    public QueueConnection getQueueConnection(final String urlStr) {
+    public Connection getConnection(final String urlStr) {
         final IbmMqUrl url = new IbmMqUrl(urlStr);
-        return new JmsQueueConnection(connectionFactory(url), queue(url));
+        return new JmsConnection(connectionFactory(url), queue(url));
     }
 
     @Override

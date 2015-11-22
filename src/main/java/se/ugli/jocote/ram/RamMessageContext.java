@@ -1,23 +1,31 @@
 package se.ugli.jocote.ram;
 
+import se.ugli.jocote.MessageContext;
+
 import java.util.Map;
 import java.util.Set;
-
-import se.ugli.jocote.MessageContext;
 
 class RamMessageContext implements MessageContext {
 
     private final Map<String, Object> headers;
     private final Map<String, Object> properties;
+    private final MessageId messageId;
 
-    RamMessageContext(final Map<String, Object> headers, final Map<String, Object> properties) {
+    RamMessageContext(MessageId messageId, final Map<String, Object> headers, final Map<String, Object> properties) {
+        this.messageId = messageId;
         this.headers = headers;
         this.properties = properties;
     }
 
     RamMessageContext(final Message message) {
+        this.messageId = message.id;
         this.headers = message.headers;
         this.properties = message.properties;
+    }
+
+    @Override
+    public String getMessageId() {
+        return messageId.value;
     }
 
     @SuppressWarnings("unchecked")

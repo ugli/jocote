@@ -1,17 +1,16 @@
 package se.ugli.jocote.ibm.mq;
 
-import java.io.IOException;
-
 import org.junit.Test;
+import se.ugli.jocote.Connection;
 
-import se.ugli.jocote.QueueConnection;
+import java.io.IOException;
 
 public class IbmMqDriverTest {
 
     @Test
     public void test() throws IOException {
         final IbmMqDriver driver = new IbmMqDriver();
-        final QueueConnection connection = driver.getQueueConnection("jms:ibmmq:queue@I05.DTST.PUBLISH.EVENT.BQ?hostName=mvsprod");
+        final Connection connection = driver.getConnection("jms:ibmmq:queue@I05.DTST.PUBLISH.EVENT.BQ?hostName=mvsprod");
         final Object object = connection.get();
         System.out.println(object);
         connection.close();

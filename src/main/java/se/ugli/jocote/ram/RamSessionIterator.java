@@ -1,11 +1,11 @@
 package se.ugli.jocote.ram;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionIterator;
+
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RamSessionIterator<T> implements SessionIterator<T> {
 

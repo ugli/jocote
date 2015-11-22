@@ -1,16 +1,16 @@
 package se.ugli.jocote.ram;
 
+import se.ugli.jocote.Connection;
+import se.ugli.jocote.Consumer;
+import se.ugli.jocote.Driver;
+import se.ugli.jocote.Subscription;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import se.ugli.jocote.Consumer;
-import se.ugli.jocote.Driver;
-import se.ugli.jocote.QueueConnection;
-import se.ugli.jocote.Subscription;
-
 public class RamDriver implements Driver {
 
-    private static Map<String, RamQueueConnection> connections = new ConcurrentHashMap<String, RamQueueConnection>();
+    private static final Map<String, RamConnection> connections = new ConcurrentHashMap<String, RamConnection>();
     private static final String URL_PREFIX = "ram@";
 
     @Override
@@ -19,20 +19,20 @@ public class RamDriver implements Driver {
     }
 
     @Override
-    public QueueConnection getQueueConnection(final String url) {
+    public Connection getConnection(final String url) {
         return connection(url);
     }
 
     @Override
     public <T> Subscription<T> subscribe(final String url, final Consumer<T> consumer) {
-        return connection(url).addSubscrition(consumer);
+        return connection(url).addSubscription(consumer);
     }
 
-    private RamQueueConnection connection(final String url) {
+    private RamConnection connection(final String url) {
         final String name = getConnectionName(url);
-        RamQueueConnection connection = connections.get(name);
+        RamConnection connection = connections.get(name);
         if (connection == null) {
-            connection = new RamQueueConnection();
+            connection = new RamConnection();
             connections.put(name, connection);
         }
         return connection;

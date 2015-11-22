@@ -1,17 +1,13 @@
 package se.ugli.jocote.jndi;
 
+import se.ugli.jocote.*;
+import se.ugli.jocote.jms.JmsConnection;
+import se.ugli.jocote.jms.JmsSubscription;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.Queue;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
-import se.ugli.jocote.Consumer;
-import se.ugli.jocote.Driver;
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.QueueConnection;
-import se.ugli.jocote.Subscription;
-import se.ugli.jocote.jms.JmsQueueConnection;
-import se.ugli.jocote.jms.JmsSubscription;
 
 public class JndiDriver implements Driver {
 
@@ -42,9 +38,9 @@ public class JndiDriver implements Driver {
     }
 
     @Override
-    public QueueConnection getQueueConnection(final String url) {
+    public Connection getConnection(final String url) {
         try {
-            return new JmsQueueConnection(connectionFactory(url), queue(url));
+            return new JmsConnection(connectionFactory(url), queue(url));
         }
         catch (final NamingException e) {
             throw new JocoteException(e);

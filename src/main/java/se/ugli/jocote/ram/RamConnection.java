@@ -1,22 +1,13 @@
 package se.ugli.jocote.ram;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
-import se.ugli.jocote.Consumer;
+import se.ugli.jocote.*;
 import se.ugli.jocote.Iterator;
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.QueueConnection;
-import se.ugli.jocote.SessionConsumer;
-import se.ugli.jocote.SessionIterator;
-import se.ugli.jocote.Subscription;
 import se.ugli.jocote.support.SimpleConsumer;
 
-class RamQueueConnection implements QueueConnection {
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+class RamConnection implements Connection {
 
     private final Queue<Message> queue = new ConcurrentLinkedQueue<Message>();
     private final List<Consumer<?>> subscribers = new ArrayList<Consumer<?>>();
@@ -74,7 +65,7 @@ class RamQueueConnection implements QueueConnection {
             queue.offer(new Message(body, headers, properties));
         else
             for (final Consumer<?> consumer : subscribers)
-                consumer.receive(body, new RamMessageContext(headers, properties));
+                consumer.receive(body, new RamMessageContext(new MessageId(), headers, properties));
     }
 
     @Override
@@ -87,7 +78,7 @@ class RamQueueConnection implements QueueConnection {
         return new RamSessionIterator<T>(queue, consumer);
     }
 
-    <T> Subscription<T> addSubscrition(final Consumer<T> consumer) {
+    <T> Subscription<T> addSubscription(final Consumer<T> consumer) {
         for (final Message message : queue)
             consumer.receive(message.body, new RamMessageContext(message));
         subscribers.add(consumer);
@@ -96,14 +87,9 @@ class RamQueueConnection implements QueueConnection {
             @Override
             public void close() {
                 subscribers.remove(consumer);
-                RamQueueConnection.this.close();
+                RamConnection.this.close();
             }
         };
-    }
-
-    @Override
-    public boolean hasNext() {
-        return !queue.isEmpty();
     }
 
 }

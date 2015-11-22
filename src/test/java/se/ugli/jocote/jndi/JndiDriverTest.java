@@ -1,18 +1,12 @@
 package se.ugli.jocote.jndi;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.junit.Test;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.Queue;
-import javax.jms.Session;
+import javax.jms.*;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import org.junit.Test;
+import static org.mockito.Mockito.*;
 
 public class JndiDriverTest {
 
@@ -29,7 +23,7 @@ public class JndiDriverTest {
         when(connectionFactory.createConnection()).thenReturn(connection);
         when(connection.createSession(false, 1)).thenReturn(session);
 
-        new JndiDriver(context).getQueueConnection("jms:jndi@FACK:QUEUE");
+        new JndiDriver(context).getConnection("jms:jndi@FACK:QUEUE");
 
         verify(context).lookup("FACK");
         verify(context).lookup("QUEUE");

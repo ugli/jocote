@@ -5,10 +5,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class DriverManager {
 
-    private static Map<Class<?>, Driver> drivers = new ConcurrentHashMap<Class<?>, Driver>();
+    private static final Map<Class<?>, Driver> drivers = new ConcurrentHashMap<Class<?>, Driver>();
 
     public static Connection getConnection(final String url) {
-        return getDriver(url).getQueueConnection(url);
+        return getDriver(url).getConnection(url);
     }
 
     public static void register(final Driver driver) {

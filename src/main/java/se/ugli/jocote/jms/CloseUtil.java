@@ -1,11 +1,6 @@
 package se.ugli.jocote.jms;
 
-import javax.jms.Connection;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-import javax.jms.QueueBrowser;
-import javax.jms.Session;
+import javax.jms.*;
 
 class CloseUtil {
 
@@ -35,16 +30,6 @@ class CloseUtil {
         try {
             if (messageProducer != null)
                 messageProducer.close();
-        }
-        catch (final JMSException e) {
-            e.printStackTrace();
-        }
-    }
-
-    static void close(final QueueBrowser queueBrowser) {
-        try {
-            if (queueBrowser != null)
-                queueBrowser.close();
         }
         catch (final JMSException e) {
             e.printStackTrace();

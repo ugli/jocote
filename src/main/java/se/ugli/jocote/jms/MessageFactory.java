@@ -1,17 +1,12 @@
 package se.ugli.jocote.jms;
 
+import se.ugli.jocote.JocoteException;
+
+import javax.jms.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.jms.BytesMessage;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-
-import se.ugli.jocote.JocoteException;
 
 class MessageFactory {
 
@@ -85,10 +80,10 @@ class MessageFactory {
             final Map<String, Object> properties)
                     throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, JMSException {
         addHeaders(message, headers);
-        addProerties(message, properties);
+        addProperties(message, properties);
     }
 
-    private static void addProerties(final Message message, final Map<String, Object> properties) throws JMSException {
+    private static void addProperties(final Message message, final Map<String, Object> properties) throws JMSException {
         if (properties != null)
             for (final Entry<String, Object> property : properties.entrySet())
                 message.setObjectProperty(property.getKey(), property.getValue());

@@ -1,23 +1,22 @@
 package se.ugli.jocote;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
 import se.ugli.jocote.activemq.ActiveMqDriver;
 import se.ugli.jocote.ram.RamDriver;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 @RunWith(Parameterized.class)
 public class DriverTest {
@@ -67,7 +66,7 @@ public class DriverTest {
 
     @Test
     public void shouldHandleGetAndPutBytes() {
-        assertThat(connection.<Object> get(), nullValue());
+        assertThat(connection.get(), nullValue());
         connection.put("hej".getBytes());
         final byte[] bytes = connection.get();
         assertThat(new String(bytes), equalTo("hej"));
@@ -166,7 +165,7 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldAcknolageIterator() throws IOException {
+    public void shouldAcknoledgeIterator() throws IOException {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
         final SessionIterator<String> iterator = connection.sessionIterator();
@@ -208,7 +207,7 @@ public class DriverTest {
     }
 
     @Test(expected = JocoteException.class)
-    public void shouldThrowThenNotLeavingOrAcknowlageMessageIterator() throws IOException {
+    public void shouldThrowThenNotLeavingOrAcknowledgeMessageIterator() throws IOException {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
         final SessionIterator<String> iterator = connection.sessionIterator();
