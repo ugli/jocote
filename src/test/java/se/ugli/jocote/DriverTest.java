@@ -30,7 +30,7 @@ public class DriverTest {
     @SuppressWarnings("rawtypes")
     @Parameterized.Parameters(name = "{0}")
     public static Collection primeNumbers() {
-        return Arrays.asList(new Object[][] { { "ActiveMQ", "jms:activemq:queue@localhost:61616:APA" }, { "RAM", "ram@APA" } });
+        return Arrays.asList(new Object[][]{{"ActiveMQ", "jms:activemq:queue@APA"}, {"RAM", "ram@APA"}});
     }
 
     private Connection connection;
