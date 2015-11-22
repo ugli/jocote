@@ -6,9 +6,8 @@ h3. Jocote - JMS made easy
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import se.ugli.jocote.*;
-import se.ugli.jocote.activemq.ActiveMqDriver;
 
-DriverManager.register(new ActiveMqDriver());
+DriverManager.register("se.ugli.jocote.activemq.ActiveMqDriver");
 Connection connection = DriverManager.getConnection("jms:activemq:queue@localhost:61616:TEST");  
 connection.put("hello world");
 String message = connection.get();
