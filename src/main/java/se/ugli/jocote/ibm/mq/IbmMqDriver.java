@@ -1,15 +1,21 @@
 package se.ugli.jocote.ibm.mq;
 
-import com.ibm.mq.jms.MQConnectionFactory;
-import com.ibm.mq.jms.MQQueue;
-import se.ugli.jocote.*;
-import se.ugli.jocote.jms.JmsConnection;
-import se.ugli.jocote.jms.JmsSubscription;
+import java.util.Map.Entry;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Queue;
-import java.util.Map.Entry;
+
+import com.ibm.mq.jms.MQConnectionFactory;
+import com.ibm.mq.jms.MQQueue;
+
+import se.ugli.jocote.Connection;
+import se.ugli.jocote.Consumer;
+import se.ugli.jocote.Driver;
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Subscription;
+import se.ugli.jocote.jms.JmsConnection;
+import se.ugli.jocote.jms.JmsSubscription;
 
 public class IbmMqDriver implements Driver {
 
@@ -24,7 +30,7 @@ public class IbmMqDriver implements Driver {
     @Override
     public Connection getConnection(final String urlStr) {
         final IbmMqUrl url = new IbmMqUrl(urlStr);
-        return new JmsConnection(connectionFactory(url), queue(url));
+        return new JmsConnection(connectionFactory(url), queue(url), url.username, url.password);
     }
 
     @Override
@@ -37,6 +43,10 @@ public class IbmMqDriver implements Driver {
         try {
             final MQConnectionFactory connectionFactory = new MQConnectionFactory();
             connectionFactory.setTransportType(TRANSPORT_TYPE_DEFAULT_VALUE);
+            if (url.host != null)
+                connectionFactory.setHostName(url.host);
+            if (url.port != null)
+                connectionFactory.setPort(Integer.parseInt(url.port));
             for (final Entry<String, String> param : url.params.entrySet())
                 if (param.getKey().equalsIgnoreCase(TRANSPORT_TYPE_PARAM_NAME))
                     connectionFactory.setTransportType(Integer.parseInt(param.getValue()));

@@ -33,10 +33,11 @@ public class JmsConnection implements Connection {
     private MessageProducer _messageProducer;
     private Session _session;
 
-    public JmsConnection(final ConnectionFactory connectionFactory, final Destination destination) {
+    public JmsConnection(final ConnectionFactory connectionFactory, final Destination destination, final String userName,
+            final String password) {
         this.destination = destination;
         try {
-            this.connection = connectionFactory.createConnection();
+            connection = connectionFactory.createConnection(userName, password);
             connection.start();
         }
         catch (final JMSException e) {
