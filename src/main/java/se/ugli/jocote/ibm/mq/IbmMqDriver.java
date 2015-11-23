@@ -16,37 +16,37 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.jms.JmsConnection;
 import se.ugli.jocote.jms.JmsSubscription;
+import se.ugli.jocote.support.JocoteUrl;
 
 public class IbmMqDriver implements Driver {
 
+    public static final String URL_SCHEME = "ibmmq";
     private static final String TRANSPORT_TYPE_PARAM_NAME = "TransportType";
     private static final int TRANSPORT_TYPE_DEFAULT_VALUE = 1;
 
     @Override
-    public boolean acceptsURL(final String url) {
-        return IbmMqUrl.acceptsURL(url);
+    public boolean acceptsURL(final JocoteUrl url) {
+        return URL_SCHEME.equals(url.scheme);
     }
 
     @Override
-    public Connection getConnection(final String urlStr) {
-        final IbmMqUrl url = new IbmMqUrl(urlStr);
-        return new JmsConnection(connectionFactory(url), queue(url), url.username, url.password);
+    public Connection getConnection(final JocoteUrl url) {
+        return new JmsConnection(connectionFactory(url), queue(url), url);
     }
 
     @Override
-    public <T> Subscription<T> subscribe(final String urlStr, final Consumer<T> consumer) {
-        final IbmMqUrl url = new IbmMqUrl(urlStr);
+    public <T> Subscription<T> subscribe(final JocoteUrl url, final Consumer<T> consumer) {
         return new JmsSubscription<T>(connectionFactory(url), consumer, queue(url));
     }
 
-    private ConnectionFactory connectionFactory(final IbmMqUrl url) {
+    private ConnectionFactory connectionFactory(final JocoteUrl url) {
         try {
             final MQConnectionFactory connectionFactory = new MQConnectionFactory();
             connectionFactory.setTransportType(TRANSPORT_TYPE_DEFAULT_VALUE);
             if (url.host != null)
                 connectionFactory.setHostName(url.host);
             if (url.port != null)
-                connectionFactory.setPort(Integer.parseInt(url.port));
+                connectionFactory.setPort(url.port);
             for (final Entry<String, String> param : url.params.entrySet())
                 if (param.getKey().equalsIgnoreCase(TRANSPORT_TYPE_PARAM_NAME))
                     connectionFactory.setTransportType(Integer.parseInt(param.getValue()));
@@ -59,7 +59,7 @@ public class IbmMqDriver implements Driver {
         }
     }
 
-    private Queue queue(final IbmMqUrl url) {
+    private Queue queue(final JocoteUrl url) {
         try {
             return new MQQueue(url.queue);
         }

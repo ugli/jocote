@@ -14,6 +14,8 @@ import javax.naming.NamingException;
 
 import org.junit.Test;
 
+import se.ugli.jocote.support.JocoteUrl;
+
 public class JndiDriverTest {
 
     private final InitialContext context = mock(InitialContext.class);
@@ -29,7 +31,7 @@ public class JndiDriverTest {
         when(connectionFactory.createConnection(null, null)).thenReturn(connection);
         when(connection.createSession(false, 1)).thenReturn(session);
 
-        new JndiDriver(context).getConnection("jms:jndi@FACK:QUEUE");
+        new JndiDriver(context).getConnection(JocoteUrl.apply("jndi://FACK/QUEUE"));
 
         verify(context).lookup("FACK");
         verify(context).lookup("QUEUE");

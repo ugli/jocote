@@ -3,16 +3,20 @@ package se.ugli.jocote;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import se.ugli.jocote.support.JocoteUrl;
+
 public final class DriverManager {
 
     private static final Map<Class<?>, Driver> drivers = new ConcurrentHashMap<Class<?>, Driver>();
 
-    public static Connection getConnection(final String url) {
+    public static Connection getConnection(final String urlStr) {
+        final JocoteUrl url = JocoteUrl.apply(urlStr);
         return getDriver(url).getConnection(url);
     }
 
     public static void register(final Driver driver) {
-        drivers.put(driver.getClass(), driver);
+        if (!drivers.containsKey(driver.getClass()))
+            drivers.put(driver.getClass(), driver);
     }
 
     public static void register(final String driver) {
@@ -30,11 +34,12 @@ public final class DriverManager {
         }
     }
 
-    public static <T> Subscription<T> subscribe(final String url, final Consumer<T> consumer) {
+    public static <T> Subscription<T> subscribe(final String urlStr, final Consumer<T> consumer) {
+        final JocoteUrl url = JocoteUrl.apply(urlStr);
         return getDriver(url).subscribe(url, consumer);
     }
 
-    private static Driver getDriver(final String url) {
+    private static Driver getDriver(final JocoteUrl url) {
         for (final Driver driver : drivers.values())
             if (driver.acceptsURL(url))
                 return driver;

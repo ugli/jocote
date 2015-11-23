@@ -21,11 +21,12 @@ import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.support.JocoteUrl;
 import se.ugli.jocote.support.SimpleConsumer;
 
 public class JmsConnection implements Connection {
 
-    private final javax.jms.Connection connection;
+    private final javax.jms.Connection _connection;
     private final Destination destination;
     private final long receiveTimeout = 10;
 
@@ -33,12 +34,11 @@ public class JmsConnection implements Connection {
     private MessageProducer _messageProducer;
     private Session _session;
 
-    public JmsConnection(final ConnectionFactory connectionFactory, final Destination destination, final String userName,
-            final String password) {
+    public JmsConnection(final ConnectionFactory connectionFactory, final Destination destination, final JocoteUrl url) {
         this.destination = destination;
         try {
-            connection = connectionFactory.createConnection(userName, password);
-            connection.start();
+            _connection = connectionFactory.createConnection(url.username, url.password);
+            _connection.start();
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -50,7 +50,7 @@ public class JmsConnection implements Connection {
         CloseUtil.close(_messageConsumer);
         CloseUtil.close(_messageProducer);
         CloseUtil.close(_session);
-        CloseUtil.close(connection);
+        CloseUtil.close(_connection);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class JmsConnection implements Connection {
         Session session = null;
         MessageConsumer messageConsumer = null;
         try {
-            session = connection.createSession(false, CLIENT_ACKNOWLEDGE.mode);
+            session = jmsConnection().createSession(false, CLIENT_ACKNOWLEDGE.mode);
             messageConsumer = session.createConsumer(destination);
             final Message message = messageConsumer.receive(receiveTimeout);
             final JmsSessionMessageContext cxt = new JmsSessionMessageContext(message);
@@ -123,7 +123,7 @@ public class JmsConnection implements Connection {
 
     @Override
     public <T> SessionIterator<T> sessionIterator(final Consumer<T> consumer) {
-        return new JmsSessionIterator<T>(connection, destination, receiveTimeout, consumer);
+        return new JmsSessionIterator<T>(jmsConnection(), destination, receiveTimeout, consumer);
     }
 
     public MessageConsumer jmsMessageConsumer() {
@@ -151,7 +151,7 @@ public class JmsConnection implements Connection {
     public Session jmsSession() {
         try {
             if (_session == null)
-                _session = connection.createSession(false, AUTO_ACKNOWLEDGE.mode);
+                _session = jmsConnection().createSession(false, AUTO_ACKNOWLEDGE.mode);
             return _session;
         }
         catch (final JMSException e) {
@@ -160,7 +160,7 @@ public class JmsConnection implements Connection {
     }
 
     public javax.jms.Connection jmsConnection() {
-        return connection;
+        return _connection;
     }
 
 }

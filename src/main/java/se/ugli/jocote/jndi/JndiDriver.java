@@ -12,10 +12,11 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.jms.JmsConnection;
 import se.ugli.jocote.jms.JmsSubscription;
+import se.ugli.jocote.support.JocoteUrl;
 
 public class JndiDriver implements Driver {
 
-    private static final String URL_PREFIX = "jms:jndi@";
+    public static final String URL_SCHEME = "jndi";
 
     private static InitialContext createContext() {
         try {
@@ -37,34 +38,30 @@ public class JndiDriver implements Driver {
     }
 
     @Override
-    public boolean acceptsURL(final String url) {
-        return url.startsWith(URL_PREFIX);
+    public boolean acceptsURL(final JocoteUrl url) {
+        return URL_SCHEME.equals(url.scheme);
     }
 
     @Override
-    public Connection getConnection(final String url) {
+    public Connection getConnection(final JocoteUrl url) {
         try {
-            return new JmsConnection(connectionFactory(url), queue(url), null, null);
+            return new JmsConnection(connectionFactory(url), queue(url), url);
         }
         catch (final NamingException e) {
             throw new JocoteException(e);
         }
     }
 
-    private Queue queue(final String url) throws NamingException {
-        final String subUrl = url.replace(URL_PREFIX, "");
-        final String jndiName = subUrl.substring(subUrl.indexOf(":") + 1, subUrl.length());
-        return (Queue) context.lookup(jndiName);
+    private Queue queue(final JocoteUrl url) throws NamingException {
+        return (Queue) context.lookup(url.queue);
     }
 
-    private ConnectionFactory connectionFactory(final String url) throws NamingException {
-        final String subUrl = url.replace(URL_PREFIX, "");
-        final String jndiName = subUrl.substring(0, subUrl.indexOf(":"));
-        return (ConnectionFactory) context.lookup(jndiName);
+    private ConnectionFactory connectionFactory(final JocoteUrl url) throws NamingException {
+        return (ConnectionFactory) context.lookup(url.host);
     }
 
     @Override
-    public <T> Subscription<T> subscribe(final String url, final Consumer<T> consumer) {
+    public <T> Subscription<T> subscribe(final JocoteUrl url, final Consumer<T> consumer) {
         try {
             return new JmsSubscription<T>(connectionFactory(url), consumer, queue(url));
         }

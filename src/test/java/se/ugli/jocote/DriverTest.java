@@ -1,22 +1,23 @@
 package se.ugli.jocote;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import se.ugli.jocote.activemq.ActiveMqDriver;
-import se.ugli.jocote.ram.RamDriver;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import se.ugli.jocote.activemq.ActiveMqDriver;
+import se.ugli.jocote.ram.RamDriver;
 
 @RunWith(Parameterized.class)
 public class DriverTest {
@@ -30,7 +31,7 @@ public class DriverTest {
     @SuppressWarnings("rawtypes")
     @Parameterized.Parameters(name = "{0}")
     public static Collection primeNumbers() {
-        return Arrays.asList(new Object[][]{{"ActiveMQ", "jms:activemq:queue@APA"}, {"RAM", "ram@APA"}});
+        return Arrays.asList(new Object[][] { { "ActiveMQ", "activemq:/APA" }, { "RAM", "ram:/APA" } });
     }
 
     private Connection connection;
