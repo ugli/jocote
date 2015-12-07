@@ -7,7 +7,7 @@ import se.ugli.jocote.support.JocoteUrl;
 
 public final class DriverManager {
 
-    private static final Map<Class<?>, Driver> drivers = new ConcurrentHashMap<Class<?>, Driver>();
+    private static final Map<String, Driver> drivers = new ConcurrentHashMap<String, Driver>();
 
     public static Connection getConnection(final String urlStr) {
         final JocoteUrl url = JocoteUrl.apply(urlStr);
@@ -15,8 +15,10 @@ public final class DriverManager {
     }
 
     public static void register(final Driver driver) {
-        if (!drivers.containsKey(driver.getClass()))
-            drivers.put(driver.getClass(), driver);
+        final String urlScheme = driver.getUrlScheme();
+        if (urlScheme == null)
+            throw new JocoteException("Driver must define url scheme");
+        drivers.put(urlScheme, driver);
     }
 
     public static void register(final String driver) {
@@ -40,10 +42,10 @@ public final class DriverManager {
     }
 
     private static Driver getDriver(final JocoteUrl url) {
-        for (final Driver driver : drivers.values())
-            if (driver.acceptsURL(url))
-                return driver;
-        throw new IllegalStateException("No suitable driver for url: " + url);
+        final Driver result = drivers.get(url.scheme);
+        if (result == null)
+            throw new IllegalStateException("No suitable driver for url: " + url);
+        return result;
     }
 
     private DriverManager() {

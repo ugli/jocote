@@ -38,8 +38,8 @@ public class JndiDriver implements Driver {
     }
 
     @Override
-    public boolean acceptsURL(final JocoteUrl url) {
-        return URL_SCHEME.equals(url.scheme);
+    public String getUrlScheme() {
+        return URL_SCHEME;
     }
 
     @Override

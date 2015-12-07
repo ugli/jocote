@@ -19,8 +19,8 @@ public class ActiveMqDriver implements Driver {
     public static final String URL_SCHEME = "activemq";
 
     @Override
-    public boolean acceptsURL(final JocoteUrl url) {
-        return URL_SCHEME.equals(url.scheme);
+    public String getUrlScheme() {
+        return URL_SCHEME;
     }
 
     @Override

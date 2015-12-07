@@ -25,8 +25,8 @@ public class IbmMqDriver implements Driver {
     private static final int TRANSPORT_TYPE_DEFAULT_VALUE = 1;
 
     @Override
-    public boolean acceptsURL(final JocoteUrl url) {
-        return URL_SCHEME.equals(url.scheme);
+    public String getUrlScheme() {
+        return URL_SCHEME;
     }
 
     @Override

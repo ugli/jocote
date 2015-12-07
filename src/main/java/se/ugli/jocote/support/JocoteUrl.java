@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import se.ugli.jocote.JocoteException;
+
 public class JocoteUrl {
 
     public final String scheme;
@@ -19,6 +21,8 @@ public class JocoteUrl {
     private JocoteUrl(final String url) {
         final URI uri = URI.create(url);
         this.scheme = uri.getScheme();
+        if (scheme == null)
+            throw new JocoteException("Url must define scheme");
         this.host = uri.getHost();
         if (uri.getPort() != -1)
             this.port = uri.getPort();
@@ -38,6 +42,8 @@ public class JocoteUrl {
             this.password = userInfo.p2;
         }
         queue = createQueue(uri.getPath());
+        if (queue == null)
+            throw new JocoteException("Url must define queue");
         params = createQuery(uri.getQuery());
     }
 
@@ -98,6 +104,22 @@ public class JocoteUrl {
                 p2 = null;
             }
         }
+    }
+
+    private String passwordToString() {
+        if (password != null) {
+            final StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < password.length(); i++)
+                sb.append("*");
+            return sb.toString();
+        }
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return "JocoteUrl [scheme=" + scheme + ", host=" + host + ", port=" + port + ", username=" + username + ", password="
+                + passwordToString() + ", queue=" + queue + ", params=" + params + "]";
     }
 
 }

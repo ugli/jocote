@@ -15,8 +15,8 @@ public class RamDriver implements Driver {
     private static final String URL_SCHEME = "ram";
 
     @Override
-    public boolean acceptsURL(final JocoteUrl url) {
-        return URL_SCHEME.equals(url.scheme);
+    public String getUrlScheme() {
+        return URL_SCHEME;
     }
 
     @Override

@@ -4,7 +4,7 @@ import se.ugli.jocote.support.JocoteUrl;
 
 public interface Driver {
 
-    boolean acceptsURL(JocoteUrl url);
+    String getUrlScheme();
 
     Connection getConnection(JocoteUrl url);
 
