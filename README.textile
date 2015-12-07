@@ -8,7 +8,7 @@ import static org.junit.Assert.*;
 import se.ugli.jocote.*;
 
 DriverManager.register("se.ugli.jocote.activemq.ActiveMqDriver");
-Connection connection = DriverManager.getConnection("jms:activemq:queue@localhost:61616:TEST");  
+Connection connection = DriverManager.getConnection("activemq:/TEST");  
 connection.put("hello world");
 String message = connection.get();
 assertThat(message, equalTo("hello world"));
