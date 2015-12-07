@@ -6,9 +6,9 @@
 	<artifactId>jocote</artifactId>
 	<packaging>jar</packaging>
 	<name>Jocote</name>
-	<version>1.6.0.7</version>
+	<version>1.6.0.8</version>
 	<description>jocote</description>
-	<url>https://github.com/ugli/habanero-java</url>
+	<url>https://github.com/ugli/jocote</url>
 	<licenses>
 		<license>
 			<name>GNU GENERAL PUBLIC LICENSE, Version 2</name>
@@ -20,7 +20,7 @@
 		<connection>scm:git:git@github.com:ugli/jocote.git</connection>
 		<developerConnection>scm:git:git@github.com:ugli/jocote.git</developerConnection>
 		<url>git@github.com:ugli/jocote.git</url>
-		<tag>jocote-1.6.0.7</tag>
+		<tag>v1.6.0.8</tag>
 	</scm>
 	<developers>
 		<developer>
