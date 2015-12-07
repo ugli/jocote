@@ -7,6 +7,32 @@ import se.ugli.jocote.support.JocoteUrl;
 
 public final class DriverManager {
 
+    static {
+        tryToRegister("se.ugli.jocote.activemq.ActiveMqDriver");
+        tryToRegister("se.ugli.jocote.ibm.mq.IbmMqDriver");
+        tryToRegister("se.ugli.jocote.jndi.JndiDriver");
+        tryToRegister("se.ugli.jocote.ram.RamDriver");
+    }
+
+    private static void tryToRegister(final String driver) {
+        try {
+            register((Driver) Class.forName(driver).newInstance());
+            System.out.println("Driver + " + driver + " registered.");
+        }
+        catch (final InstantiationException e) {
+            System.err.println("Driver + " + driver + " not registered: " + e.getMessage());
+        }
+        catch (final IllegalAccessException e) {
+            System.err.println("Driver + " + driver + " not registered: " + e.getMessage());
+        }
+        catch (final ClassNotFoundException e) {
+            System.err.println("Driver + " + driver + " not registered: " + e.getMessage());
+        }
+        catch (final RuntimeException e) {
+            System.err.println("Driver + " + driver + " not registered: " + e.getMessage());
+        }
+    }
+
     private static final Map<String, Driver> drivers = new ConcurrentHashMap<String, Driver>();
 
     public static Connection getConnection(final String urlStr) {
