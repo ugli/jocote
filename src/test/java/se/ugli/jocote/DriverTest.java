@@ -11,22 +11,12 @@ import java.util.HashMap;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import se.ugli.jocote.activemq.ActiveMqDriver;
-import se.ugli.jocote.ram.RamDriver;
-
 @RunWith(Parameterized.class)
 public class DriverTest {
-
-    @BeforeClass
-    public static void registerDriver() {
-        DriverManager.register(new ActiveMqDriver());
-        DriverManager.register(new RamDriver());
-    }
 
     @SuppressWarnings("rawtypes")
     @Parameterized.Parameters(name = "{0}")

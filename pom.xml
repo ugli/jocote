@@ -6,7 +6,7 @@
 	<artifactId>jocote</artifactId>
 	<packaging>jar</packaging>
 	<name>Jocote</name>
-	<version>1.6.0.8</version>
+	<version>1.6.0.9</version>
 	<description>jocote</description>
 	<url>https://github.com/ugli/jocote</url>
 	<licenses>
@@ -20,7 +20,7 @@
 		<connection>scm:git:git@github.com:ugli/jocote.git</connection>
 		<developerConnection>scm:git:git@github.com:ugli/jocote.git</developerConnection>
 		<url>git@github.com:ugli/jocote.git</url>
-		<tag>v1.6.0.8</tag>
+		<tag>v1.6.0.9</tag>
 	</scm>
 	<developers>
 		<developer>

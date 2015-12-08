@@ -1,11 +1,21 @@
 package se.ugli.jocote.ram;
 
-import se.ugli.jocote.*;
-import se.ugli.jocote.Iterator;
-import se.ugli.jocote.support.SimpleConsumer;
-
-import java.util.*;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import se.ugli.jocote.Connection;
+import se.ugli.jocote.Consumer;
+import se.ugli.jocote.Iterator;
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.SessionConsumer;
+import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.Subscription;
+import se.ugli.jocote.support.SimpleConsumer;
 
 class RamConnection implements Connection {
 
@@ -64,8 +74,14 @@ class RamConnection implements Connection {
         if (subscribers.isEmpty())
             queue.offer(new Message(body, headers, properties));
         else
-            for (final Consumer<?> consumer : subscribers)
-                consumer.receive(body, new RamMessageContext(new MessageId(), headers, properties));
+            randomSubscriber().receive(body, new RamMessageContext(new MessageId(), headers, properties));
+    }
+
+    private Consumer<?> randomSubscriber() {
+        final byte[] seed = String.valueOf(System.nanoTime()).getBytes();
+        final SecureRandom secureRandom = new SecureRandom(seed);
+        final int index = secureRandom.nextInt(subscribers.size());
+        return subscribers.get(index);
     }
 
     @Override
