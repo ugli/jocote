@@ -9,7 +9,6 @@ import se.ugli.jocote.*;
 
 Connection connection = DriverManager.getConnection("activemq:/TEST");  
 connection.put("hello world");
-String message = connection.get();
-assertThat(message, equalTo("hello world"));
+assertThat(connection.get(), equalTo("hello world"));
 connection.close();  
 </code></pre>
