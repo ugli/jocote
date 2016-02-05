@@ -1,9 +1,8 @@
 package se.ugli.jocote;
 
-import java.io.Closeable;
 import java.util.Map;
 
-public interface Connection extends Closeable {
+public interface Connection extends AutoCloseable {
 
     @Override
     void close();

@@ -1,8 +1,6 @@
 package se.ugli.jocote;
 
-import java.io.Closeable;
-
-public interface SessionIterator<T> extends Iterator<T>, Closeable {
+public interface SessionIterator<T> extends Iterator<T>, AutoCloseable {
 
     @Override
     void close();

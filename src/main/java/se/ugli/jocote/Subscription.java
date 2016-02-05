@@ -1,8 +1,6 @@
 package se.ugli.jocote;
 
-import java.io.Closeable;
-
-public interface Subscription<T> extends Closeable {
+public interface Subscription<T> extends AutoCloseable {
     @Override
     void close();
 }
