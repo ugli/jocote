@@ -2,20 +2,24 @@ package se.ugli.jocote.activemq;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static se.ugli.jocote.DriverManager.getConnection;
+
+import java.util.Optional;
 
 import org.junit.Test;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.DriverManager;
 
 public class ActiveMqDriverTest {
 
     @Test
     public void test() {
-        final Connection connection = DriverManager.getConnection("activemq:/TEST");
-        connection.put("hello world");
-        assertThat(connection.get().toString(), equalTo("hello world"));
-        connection.close();
+        try (Connection connection = getConnection("activemq:/TEST")) {
+            connection.put("hello world");
+            final Optional<String> msgOpt = connection.get();
+            assertThat(msgOpt.isPresent(), equalTo(true));
+            assertThat(msgOpt.get(), equalTo("hello world"));
+        }
     }
 
 }

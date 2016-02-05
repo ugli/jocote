@@ -1,12 +1,12 @@
 package se.ugli.jocote;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Optional;
 
 import org.junit.After;
 import org.junit.Before;
@@ -48,18 +48,18 @@ public class DriverTest {
 
     @Test
     public void shouldHandleGetAndPutString() {
-        assertThat(connection.get(), nullValue());
+        assertThat(connection.get().isPresent(), equalTo(false));
         connection.put("hej");
-        final String message = connection.get();
-        assertThat(message, equalTo("hej"));
+        final Optional<String> message = connection.get();
+        assertThat(message.get(), equalTo("hej"));
     }
 
     @Test
     public void shouldHandleGetAndPutBytes() {
-        assertThat(connection.get(), nullValue());
+        assertThat(connection.get().isPresent(), equalTo(false));
         connection.put("hej".getBytes());
-        final byte[] bytes = connection.get();
-        assertThat(new String(bytes), equalTo("hej"));
+        final Optional<byte[]> bytes = connection.get();
+        assertThat(new String(bytes.get()), equalTo("hej"));
     }
 
     @Test
@@ -105,7 +105,7 @@ public class DriverTest {
                 return (String) message;
             }
         });
-        assertThat(connection.get(), nullValue());
+        assertThat(connection.get().isPresent(), equalTo(false));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class DriverTest {
                 return (String) message;
             }
         });
-        assertThat(connection.<String> get(), equalTo("hej"));
+        assertThat(connection.<String> get().get(), equalTo("hej"));
     }
 
     @Test(expected = JocoteException.class)
@@ -151,7 +151,7 @@ public class DriverTest {
         }
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(5050));
-        assertThat(connection.get(), nullValue());
+        assertThat(connection.get().isPresent(), equalTo(false));
     }
 
     @Test
@@ -173,7 +173,7 @@ public class DriverTest {
         iterator.close();
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(5050));
-        assertThat(connection.get(), nullValue());
+        assertThat(connection.get().isPresent(), equalTo(false));
     }
 
     @Test
@@ -193,7 +193,7 @@ public class DriverTest {
         iterator.close();
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(4950));
-        assertThat(connection.<String> get(), equalTo("0"));
+        assertThat(connection.<String> get().get(), equalTo("0"));
     }
 
     @Test(expected = JocoteException.class)
@@ -246,7 +246,7 @@ public class DriverTest {
         subscription.close();
         assertThat(count.i, equalTo(100));
         assertThat(sum.i, equalTo(4950));
-        assertThat(connection.get(), nullValue());
+        assertThat(connection.get().isPresent(), equalTo(false));
     }
 
     @Test
@@ -269,7 +269,7 @@ public class DriverTest {
         subscription.close();
         assertThat(count.i, equalTo(100));
         assertThat(sum.i, equalTo(4950));
-        assertThat(connection.get(), nullValue());
+        assertThat(connection.get().isPresent(), equalTo(false));
     }
 
 }

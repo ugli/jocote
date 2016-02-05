@@ -1,17 +1,18 @@
 package se.ugli.jocote;
 
 import java.util.Map;
+import java.util.Optional;
 
 public interface Connection extends AutoCloseable {
 
     @Override
     void close();
 
-    <T> T get();
+    <T> Optional<T> get();
 
-    <T> T get(Consumer<T> consumer);
+    <T> Optional<T> get(Consumer<T> consumer);
 
-    <T> T get(SessionConsumer<T> consumer);
+    <T> Optional<T> get(SessionConsumer<T> consumer);
 
     <T> Iterator<T> iterator();
 

@@ -6,6 +6,7 @@ import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -54,14 +55,14 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> T get() {
+    public <T> Optional<T> get() {
         return get(new SimpleConsumer<T>());
     }
 
     @Override
-    public <T> T get(final Consumer<T> consumer) {
+    public <T> Optional<T> get(final Consumer<T> consumer) {
         try {
-            return sendReceive(consumer, jmsMessageConsumer().receive(receiveTimeout));
+            return Optional.ofNullable(sendReceive(consumer, jmsMessageConsumer().receive(receiveTimeout)));
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -69,7 +70,7 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> T get(final SessionConsumer<T> consumer) {
+    public <T> Optional<T> get(final SessionConsumer<T> consumer) {
         Session session = null;
         MessageConsumer messageConsumer = null;
         try {
@@ -79,7 +80,7 @@ public class JmsConnection implements Connection {
             final JmsSessionMessageContext cxt = new JmsSessionMessageContext(message);
             final T result = consumer.receive(MessageFactory.createObjectMessage(message), cxt);
             if (cxt.isClosable())
-                return result;
+                return Optional.ofNullable(result);
             throw new JocoteException("You have to acknowledge or leave message");
         }
         catch (final JMSException e) {

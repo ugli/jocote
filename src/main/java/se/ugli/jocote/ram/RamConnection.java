@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -29,26 +30,26 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public <T> T get() {
+    public <T> Optional<T> get() {
         return get(new SimpleConsumer<T>());
     }
 
     @Override
-    public <T> T get(final Consumer<T> consumer) {
+    public <T> Optional<T> get(final Consumer<T> consumer) {
         final Message message = queue.poll();
         if (message != null)
-            return consumer.receive(message.body, new RamMessageContext(message));
-        return null;
+            return Optional.ofNullable(consumer.receive(message.body, new RamMessageContext(message)));
+        return Optional.empty();
     }
 
     @Override
-    public <T> T get(final SessionConsumer<T> consumer) {
+    public <T> Optional<T> get(final SessionConsumer<T> consumer) {
         final Message message = queue.poll();
         if (message != null) {
             final RamSessionMessageContext cxt = new RamSessionMessageContext(message, queue);
             final T result = consumer.receive(message.body, cxt);
             if (cxt.isClosable())
-                return result;
+                return Optional.ofNullable(result);
             throw new JocoteException("You have to acknowledge or leave message");
         }
         return null;
