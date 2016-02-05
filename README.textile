@@ -3,12 +3,16 @@
 h3. Jocote - JMS made easy
 
 <pre><code>
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import java.util.Optional;
+import org.junit.Test;
 import se.ugli.jocote.*;
 
-Connection connection = DriverManager.getConnection("activemq:/TEST");  
-connection.put("hello world");
-assertThat(connection.get(), equalTo("hello world"));
-connection.close();  
+try (Connection connection = DriverManager.getConnection("activemq:/TEST")) {
+    connection.put("hello world");
+    Optional<String> msgOpt = connection.get();
+    assertThat(msgOpt.isPresent(), equalTo(true));
+    assertThat(msgOpt.get(), equalTo("hello world"));
+}
 </code></pre>
