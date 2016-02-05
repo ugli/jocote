@@ -4,7 +4,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,7 +31,7 @@ public class DriverTest {
     }
 
     @Before
-    public void clearQueue() throws IOException {
+    public void clearQueue() {
         connection = DriverManager.getConnection(url);
         final Iterator<Object> iterator = connection.iterator();
         while (iterator.next() != null)
@@ -42,7 +41,7 @@ public class DriverTest {
     }
 
     @After
-    public void close() throws IOException {
+    public void close() {
         connection.close();
         connection = null;
     }
@@ -136,7 +135,7 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldConsumeIterator() throws IOException {
+    public void shouldConsumeIterator() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
         final Iterator<String> iterator = connection.iterator();
@@ -156,7 +155,7 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldAcknoledgeIterator() throws IOException {
+    public void shouldAcknoledgeIterator() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
         final SessionIterator<String> iterator = connection.sessionIterator();
@@ -178,7 +177,7 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldLeaveIterator() throws IOException {
+    public void shouldLeaveIterator() {
         for (int i = 0; i < 100; i++)
             connection.put(String.valueOf(i));
         final SessionIterator<String> iterator = connection.sessionIterator();
@@ -198,7 +197,7 @@ public class DriverTest {
     }
 
     @Test(expected = JocoteException.class)
-    public void shouldThrowThenNotLeavingOrAcknowledgeMessageIterator() throws IOException {
+    public void shouldThrowThenNotLeavingOrAcknowledgeMessageIterator() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
         final SessionIterator<String> iterator = connection.sessionIterator();
@@ -228,7 +227,7 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldGetValuesWhenSubscribe() throws IOException, InterruptedException {
+    public void shouldGetValuesWhenSubscribe() throws InterruptedException {
         for (int i = 0; i < 100; i++)
             connection.put(String.valueOf(i));
         final IntWrap sum = new IntWrap();
@@ -251,7 +250,7 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldGetValuesAfterSubscribe() throws IOException, InterruptedException {
+    public void shouldGetValuesAfterSubscribe() throws InterruptedException {
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
         final Subscription<String> subscription = DriverManager.subscribe(url, new Consumer<String>() {

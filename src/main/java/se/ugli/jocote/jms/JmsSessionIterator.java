@@ -3,8 +3,6 @@ package se.ugli.jocote.jms;
 import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 
-import java.io.IOException;
-
 import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -53,7 +51,7 @@ class JmsSessionIterator<T> implements SessionIterator<T> {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         CloseUtil.close(jmsConsumer);
         CloseUtil.close(session);
         if (!closable && lastMessage != null)

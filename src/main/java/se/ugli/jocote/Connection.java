@@ -5,6 +5,9 @@ import java.util.Map;
 
 public interface Connection extends Closeable {
 
+    @Override
+    void close();
+
     <T> T get();
 
     <T> T get(Consumer<T> consumer);
