@@ -30,15 +30,18 @@ public class JmsConnection implements Connection {
     private final Destination destination;
     private final long receiveTimeout = 10;
 
-    private MessageConsumer _messageConsumer;
-    private MessageProducer _messageProducer;
-    private Session _session;
+    private final MessageConsumer _messageConsumer;
+    private final MessageProducer _messageProducer;
+    private final Session _session;
 
     public JmsConnection(final ConnectionFactory connectionFactory, final Destination destination, final JocoteUrl url) {
         this.destination = destination;
         try {
             _connection = connectionFactory.createConnection(url.username, url.password);
             _connection.start();
+            _session = jmsConnection().createSession(false, AUTO_ACKNOWLEDGE.mode);
+            _messageConsumer = jmsSession().createConsumer(destination);
+            _messageProducer = jmsSession().createProducer(destination);
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -130,36 +133,15 @@ public class JmsConnection implements Connection {
     }
 
     public MessageConsumer jmsMessageConsumer() {
-        try {
-            if (_messageConsumer == null)
-                _messageConsumer = jmsSession().createConsumer(destination);
-            return _messageConsumer;
-        }
-        catch (final JMSException e) {
-            throw new JocoteException(e);
-        }
+        return _messageConsumer;
     }
 
     public MessageProducer jmsMessageProducer() {
-        try {
-            if (_messageProducer == null)
-                _messageProducer = jmsSession().createProducer(destination);
-            return _messageProducer;
-        }
-        catch (final JMSException e) {
-            throw new JocoteException(e);
-        }
+        return _messageProducer;
     }
 
     public Session jmsSession() {
-        try {
-            if (_session == null)
-                _session = jmsConnection().createSession(false, AUTO_ACKNOWLEDGE.mode);
-            return _session;
-        }
-        catch (final JMSException e) {
-            throw new JocoteException(e);
-        }
+        return _session;
     }
 
     public javax.jms.Connection jmsConnection() {
