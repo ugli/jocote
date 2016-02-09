@@ -67,14 +67,10 @@ public class DriverTest {
         final HashMap<String, Object> header = new HashMap<String, Object>();
         header.put("CorrelationID", "B");
         connection.put("hej", header, null);
-        connection.get(new Consumer<String>() {
-
-            @Override
-            public Optional<String> receive(final Object message, final MessageContext cxt) {
-                assertThat(cxt.getHeaderNames().contains("CorrelationID"), equalTo(true));
-                assertThat(cxt.getHeader("CorrelationID").toString(), equalTo("B"));
-                return Optional.ofNullable((String) message);
-            }
+        connection.get((Consumer<String>) (msg, cxt) -> {
+            assertThat(cxt.getHeaderNames().contains("CorrelationID"), equalTo(true));
+            assertThat(cxt.getHeader("CorrelationID").toString(), equalTo("B"));
+            return Optional.ofNullable((String) msg);
         });
     }
 
@@ -83,27 +79,19 @@ public class DriverTest {
         final HashMap<String, Object> properties = new HashMap<String, Object>();
         properties.put("environment", "TEST");
         connection.put("hej", null, properties);
-        connection.get(new Consumer<String>() {
-
-            @Override
-            public Optional<String> receive(final Object message, final MessageContext cxt) {
-                assertThat(cxt.getPropertyNames().contains("environment"), equalTo(true));
-                assertThat(cxt.getProperty("environment").toString(), equalTo("TEST"));
-                return Optional.ofNullable((String) message);
-            }
+        connection.get((Consumer<String>) (msg, cxt) -> {
+            assertThat(cxt.getPropertyNames().contains("environment"), equalTo(true));
+            assertThat(cxt.getProperty("environment").toString(), equalTo("TEST"));
+            return Optional.ofNullable((String) msg);
         });
     }
 
     @Test
     public void shouldAcknowledgeMessage() {
         connection.put("hej");
-        connection.get(new SessionConsumer<String>() {
-
-            @Override
-            public Optional<String> receive(final Object message, final SessionMessageContext cxt) {
-                cxt.acknowledgeMessage();
-                return Optional.ofNullable((String) message);
-            }
+        connection.get((SessionConsumer<String>) (msg, cxt) -> {
+            cxt.acknowledgeMessage();
+            return Optional.ofNullable((String) msg);
         });
         assertThat(connection.get().isPresent(), equalTo(false));
     }
@@ -111,13 +99,9 @@ public class DriverTest {
     @Test
     public void shouldLeaveMessage() {
         connection.put("hej");
-        connection.get(new SessionConsumer<String>() {
-
-            @Override
-            public Optional<String> receive(final Object message, final SessionMessageContext cxt) {
-                cxt.leaveMessage();
-                return Optional.ofNullable((String) message);
-            }
+        connection.get((SessionConsumer<String>) (msg, cxt) -> {
+            cxt.leaveMessage();
+            return Optional.ofNullable((String) msg);
         });
         assertThat(connection.<String> get().get(), equalTo("hej"));
     }
@@ -125,13 +109,7 @@ public class DriverTest {
     @Test(expected = JocoteException.class)
     public void shouldThrowThenNotLeavingOrAcknowledgeMessage() {
         connection.put("hej");
-        connection.get(new SessionConsumer<String>() {
-
-            @Override
-            public Optional<String> receive(final Object message, final SessionMessageContext cxt) {
-                return Optional.ofNullable((String) message);
-            }
-        });
+        connection.get((SessionConsumer<String>) (msg, cxt) -> Optional.ofNullable((String) msg));
     }
 
     @Test
@@ -232,15 +210,11 @@ public class DriverTest {
             connection.put(String.valueOf(i));
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
-        final Subscription<String> subscription = DriverManager.subscribe(url, new Consumer<String>() {
-
-            @Override
-            public Optional<String> receive(final Object message, final MessageContext cxt) {
-                final String next = (String) message;
-                count.i++;
-                sum.i += Integer.parseInt(next);
-                return Optional.ofNullable(next);
-            }
+        final Subscription<String> subscription = DriverManager.subscribe(url, (msg, cxt) -> {
+            final String next = (String) msg;
+            count.i++;
+            sum.i += Integer.parseInt(next);
+            return Optional.ofNullable(next);
         });
         Thread.sleep(10);
         subscription.close();
@@ -253,15 +227,11 @@ public class DriverTest {
     public void shouldGetValuesAfterSubscribe() throws InterruptedException {
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
-        final Subscription<String> subscription = DriverManager.subscribe(url, new Consumer<String>() {
-
-            @Override
-            public Optional<String> receive(final Object message, final MessageContext cxt) {
-                final String next = (String) message;
-                count.i++;
-                sum.i += Integer.parseInt(next);
-                return Optional.ofNullable(next);
-            }
+        final Subscription<String> subscription = DriverManager.subscribe(url, (msg, cxt) -> {
+            final String next = (String) msg;
+            count.i++;
+            sum.i += Integer.parseInt(next);
+            return Optional.ofNullable(next);
         });
         for (int i = 0; i < 100; i++)
             connection.put(String.valueOf(i));
