@@ -20,10 +20,9 @@ import se.ugli.jocote.Connection;
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
-import se.ugli.jocote.support.JocoteUrl;
-import se.ugli.jocote.support.SimpleConsumer;
 
 public class JmsConnection implements Connection {
 
@@ -54,9 +53,10 @@ public class JmsConnection implements Connection {
         CloseUtil.close(_connection);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Optional<T> get() {
-        return get(new SimpleConsumer<T>());
+        return get((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
     }
 
     @Override
@@ -92,9 +92,10 @@ public class JmsConnection implements Connection {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Iterator<T> iterator() {
-        return iterator(new SimpleConsumer<T>());
+        return iterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
     }
 
     @Override
@@ -117,9 +118,10 @@ public class JmsConnection implements Connection {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> SessionIterator<T> sessionIterator() {
-        return sessionIterator(new SimpleConsumer<T>());
+        return sessionIterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
     }
 
     @Override

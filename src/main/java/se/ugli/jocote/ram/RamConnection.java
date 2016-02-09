@@ -16,7 +16,6 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.Subscription;
-import se.ugli.jocote.support.SimpleConsumer;
 
 class RamConnection implements Connection {
 
@@ -29,9 +28,10 @@ class RamConnection implements Connection {
             queue.clear();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Optional<T> get() {
-        return get(new SimpleConsumer<T>());
+        return get((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
     }
 
     @Override
@@ -55,9 +55,10 @@ class RamConnection implements Connection {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Iterator<T> iterator() {
-        return iterator(new SimpleConsumer<T>());
+        return iterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
     }
 
     @Override
@@ -85,9 +86,10 @@ class RamConnection implements Connection {
         return subscribers.get(index);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> SessionIterator<T> sessionIterator() {
-        return sessionIterator(new SimpleConsumer<T>());
+        return sessionIterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
     }
 
     @Override

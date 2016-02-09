@@ -6,8 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Driver;
+import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.Subscription;
-import se.ugli.jocote.support.JocoteUrl;
 
 public class RamDriver implements Driver {
 

@@ -1,7 +1,5 @@
 package se.ugli.jocote;
 
-import se.ugli.jocote.support.JocoteUrl;
-
 public interface Driver {
 
     String getUrlScheme();

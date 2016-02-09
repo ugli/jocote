@@ -14,7 +14,7 @@ import javax.naming.NamingException;
 
 import org.junit.Test;
 
-import se.ugli.jocote.support.JocoteUrl;
+import se.ugli.jocote.JocoteUrl;
 
 public class JndiDriverTest {
 

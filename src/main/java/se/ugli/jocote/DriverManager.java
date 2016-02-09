@@ -3,8 +3,6 @@ package se.ugli.jocote;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import se.ugli.jocote.support.JocoteUrl;
-
 public final class DriverManager {
 
     private static final Map<String, Driver> drivers = new ConcurrentHashMap<String, Driver>();
@@ -70,7 +68,7 @@ public final class DriverManager {
     private static Driver getDriver(final JocoteUrl url) {
         final Driver result = drivers.get(url.scheme);
         if (result == null)
-            throw new IllegalStateException("No suitable driver for url: " + url);
+            throw new JocoteException("No suitable driver for url: " + url);
         return result;
     }
 

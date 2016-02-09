@@ -9,10 +9,10 @@ import org.apache.activemq.command.ActiveMQQueue;
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Driver;
+import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.jms.JmsConnection;
 import se.ugli.jocote.jms.JmsSubscription;
-import se.ugli.jocote.support.JocoteUrl;
 
 public class ActiveMqDriver implements Driver {
 
