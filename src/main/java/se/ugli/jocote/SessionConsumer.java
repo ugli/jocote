@@ -1,8 +1,10 @@
 package se.ugli.jocote;
 
+import java.util.Optional;
+
 @FunctionalInterface
 public interface SessionConsumer<T> {
 
-    T receive(Object message, SessionMessageContext cxt);
+    Optional<T> receive(Object message, SessionMessageContext cxt);
 
 }

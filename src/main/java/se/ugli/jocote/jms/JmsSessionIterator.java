@@ -3,6 +3,8 @@ package se.ugli.jocote.jms;
 import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 
+import java.util.Optional;
+
 import javax.jms.Connection;
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -64,15 +66,14 @@ class JmsSessionIterator<T> implements SessionIterator<T> {
     }
 
     @Override
-    public T next() {
+    public Optional<T> next() {
         try {
             final javax.jms.Message message = jmsConsumer.receive(receiveTimeout);
             if (message != null) {
                 lastMessage = message;
                 return sendReceive(jocoteConsumer, message);
             }
-            // TODO java.util.Optional
-            return null;
+            return Optional.empty();
         }
         catch (final JMSException e) {
             throw new JocoteException(e);

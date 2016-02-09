@@ -34,7 +34,7 @@ public class DriverTest {
     public void clearQueue() {
         connection = DriverManager.getConnection(url);
         final Iterator<Object> iterator = connection.iterator();
-        while (iterator.next() != null)
+        while (iterator.next().isPresent())
             ;
         connection.close();
         connection = DriverManager.getConnection(url);
@@ -70,10 +70,10 @@ public class DriverTest {
         connection.get(new Consumer<String>() {
 
             @Override
-            public String receive(final Object message, final MessageContext cxt) {
+            public Optional<String> receive(final Object message, final MessageContext cxt) {
                 assertThat(cxt.getHeaderNames().contains("CorrelationID"), equalTo(true));
                 assertThat(cxt.getHeader("CorrelationID").toString(), equalTo("B"));
-                return (String) message;
+                return Optional.ofNullable((String) message);
             }
         });
     }
@@ -86,10 +86,10 @@ public class DriverTest {
         connection.get(new Consumer<String>() {
 
             @Override
-            public String receive(final Object message, final MessageContext cxt) {
+            public Optional<String> receive(final Object message, final MessageContext cxt) {
                 assertThat(cxt.getPropertyNames().contains("environment"), equalTo(true));
                 assertThat(cxt.getProperty("environment").toString(), equalTo("TEST"));
-                return (String) message;
+                return Optional.ofNullable((String) message);
             }
         });
     }
@@ -100,9 +100,9 @@ public class DriverTest {
         connection.get(new SessionConsumer<String>() {
 
             @Override
-            public String receive(final Object message, final SessionMessageContext cxt) {
+            public Optional<String> receive(final Object message, final SessionMessageContext cxt) {
                 cxt.acknowledgeMessage();
-                return (String) message;
+                return Optional.ofNullable((String) message);
             }
         });
         assertThat(connection.get().isPresent(), equalTo(false));
@@ -114,9 +114,9 @@ public class DriverTest {
         connection.get(new SessionConsumer<String>() {
 
             @Override
-            public String receive(final Object message, final SessionMessageContext cxt) {
+            public Optional<String> receive(final Object message, final SessionMessageContext cxt) {
                 cxt.leaveMessage();
-                return (String) message;
+                return Optional.ofNullable((String) message);
             }
         });
         assertThat(connection.<String> get().get(), equalTo("hej"));
@@ -128,8 +128,8 @@ public class DriverTest {
         connection.get(new SessionConsumer<String>() {
 
             @Override
-            public String receive(final Object message, final SessionMessageContext cxt) {
-                return (String) message;
+            public Optional<String> receive(final Object message, final SessionMessageContext cxt) {
+                return Optional.ofNullable((String) message);
             }
         });
     }
@@ -141,12 +141,12 @@ public class DriverTest {
         final Iterator<String> iterator = connection.iterator();
         int sum = 0;
         int count = 0;
-        String next = iterator.next();
-        while (next != null) {
+        Optional<String> next = iterator.next();
+        while (next.isPresent()) {
             next = iterator.next();
-            if (next != null) {
+            if (next.isPresent()) {
                 count++;
-                sum += Integer.parseInt(next);
+                sum += Integer.parseInt(next.get());
             }
         }
         assertThat(count, equalTo(100));
@@ -161,12 +161,12 @@ public class DriverTest {
         final SessionIterator<String> iterator = connection.sessionIterator();
         int sum = 0;
         int count = 0;
-        String next = iterator.next();
-        while (next != null) {
+        Optional<String> next = iterator.next();
+        while (next.isPresent()) {
             next = iterator.next();
-            if (next != null) {
+            if (next.isPresent()) {
                 count++;
-                sum += Integer.parseInt(next);
+                sum += Integer.parseInt(next.get());
             }
         }
         iterator.acknowledgeMessages();
@@ -183,10 +183,10 @@ public class DriverTest {
         final SessionIterator<String> iterator = connection.sessionIterator();
         int sum = 0;
         int count = 0;
-        String next = iterator.next();
-        while (next != null) {
+        Optional<String> next = iterator.next();
+        while (next.isPresent()) {
             count++;
-            sum += Integer.parseInt(next);
+            sum += Integer.parseInt(next.get());
             next = iterator.next();
         }
         iterator.leaveMessages();
@@ -203,12 +203,12 @@ public class DriverTest {
         final SessionIterator<String> iterator = connection.sessionIterator();
         int sum = 0;
         int count = 0;
-        String next = iterator.next();
-        while (next != null) {
+        Optional<String> next = iterator.next();
+        while (next.isPresent()) {
             next = iterator.next();
-            if (next != null) {
+            if (next.isPresent()) {
                 count++;
-                sum += Integer.parseInt(next);
+                sum += Integer.parseInt(next.get());
             }
         }
         assertThat(count, equalTo(100));
@@ -235,11 +235,11 @@ public class DriverTest {
         final Subscription<String> subscription = DriverManager.subscribe(url, new Consumer<String>() {
 
             @Override
-            public String receive(final Object message, final MessageContext cxt) {
+            public Optional<String> receive(final Object message, final MessageContext cxt) {
                 final String next = (String) message;
                 count.i++;
                 sum.i += Integer.parseInt(next);
-                return next;
+                return Optional.ofNullable(next);
             }
         });
         Thread.sleep(10);
@@ -256,11 +256,11 @@ public class DriverTest {
         final Subscription<String> subscription = DriverManager.subscribe(url, new Consumer<String>() {
 
             @Override
-            public String receive(final Object message, final MessageContext cxt) {
+            public Optional<String> receive(final Object message, final MessageContext cxt) {
                 final String next = (String) message;
                 count.i++;
                 sum.i += Integer.parseInt(next);
-                return next;
+                return Optional.ofNullable(next);
             }
         });
         for (int i = 0; i < 100; i++)

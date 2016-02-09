@@ -1,11 +1,12 @@
 package se.ugli.jocote.ram;
 
+import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionIterator;
-
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class RamSessionIterator<T> implements SessionIterator<T> {
 
@@ -20,13 +21,13 @@ public class RamSessionIterator<T> implements SessionIterator<T> {
     }
 
     @Override
-    public T next() {
+    public Optional<T> next() {
         final Message message = connectionQueue.poll();
         if (message != null) {
             backoutQueue.offer(message);
             return consumer.receive(message.body, new RamMessageContext(message));
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

@@ -38,7 +38,7 @@ class RamConnection implements Connection {
     public <T> Optional<T> get(final Consumer<T> consumer) {
         final Message message = queue.poll();
         if (message != null)
-            return Optional.ofNullable(consumer.receive(message.body, new RamMessageContext(message)));
+            return consumer.receive(message.body, new RamMessageContext(message));
         return Optional.empty();
     }
 
@@ -47,9 +47,9 @@ class RamConnection implements Connection {
         final Message message = queue.poll();
         if (message != null) {
             final RamSessionMessageContext cxt = new RamSessionMessageContext(message, queue);
-            final T result = consumer.receive(message.body, cxt);
+            final Optional<T> result = consumer.receive(message.body, cxt);
             if (cxt.isClosable())
-                return Optional.ofNullable(result);
+                return result;
             throw new JocoteException("You have to acknowledge or leave message");
         }
         return null;

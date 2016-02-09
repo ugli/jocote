@@ -1,7 +1,9 @@
 package se.ugli.jocote;
 
-public interface Iterator<E> {
+import java.util.Optional;
 
-    E next();
+public interface Iterator<T> {
+
+    Optional<T> next();
 
 }

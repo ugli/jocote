@@ -62,7 +62,7 @@ public class JmsConnection implements Connection {
     @Override
     public <T> Optional<T> get(final Consumer<T> consumer) {
         try {
-            return Optional.ofNullable(sendReceive(consumer, jmsMessageConsumer().receive(receiveTimeout)));
+            return sendReceive(consumer, jmsMessageConsumer().receive(receiveTimeout));
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -78,9 +78,9 @@ public class JmsConnection implements Connection {
             messageConsumer = session.createConsumer(destination);
             final Message message = messageConsumer.receive(receiveTimeout);
             final JmsSessionMessageContext cxt = new JmsSessionMessageContext(message);
-            final T result = consumer.receive(MessageFactory.createObjectMessage(message), cxt);
+            final Optional<T> result = consumer.receive(MessageFactory.createObjectMessage(message), cxt);
             if (cxt.isClosable())
-                return Optional.ofNullable(result);
+                return result;
             throw new JocoteException("You have to acknowledge or leave message");
         }
         catch (final JMSException e) {

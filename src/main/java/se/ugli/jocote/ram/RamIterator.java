@@ -1,5 +1,6 @@
 package se.ugli.jocote.ram;
 
+import java.util.Optional;
 import java.util.Queue;
 
 import se.ugli.jocote.Consumer;
@@ -16,11 +17,11 @@ public class RamIterator<T> implements Iterator<T> {
     }
 
     @Override
-    public T next() {
+    public Optional<T> next() {
         final Message message = connectionQueue.poll();
         if (message != null)
             return consumer.receive(message.body, new RamMessageContext(message));
-        return null;
+        return Optional.empty();
     }
 
 }
