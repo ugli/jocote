@@ -28,9 +28,14 @@ class RamConnection implements Connection {
             queue.clear();
     }
 
+    @Override
+    public Optional<Object> get() {
+        return get(Object.class);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Optional<T> get() {
+    public <T> Optional<T> get(final Class<T> type) {
         return get((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
     }
 
@@ -55,9 +60,14 @@ class RamConnection implements Connection {
         return null;
     }
 
+    @Override
+    public Iterator<Object> iterator() {
+        return iterator(Object.class);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    public <T> Iterator<T> iterator() {
+    public <T> Iterator<T> iterator(final Class<T> type) {
         return iterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
     }
 
@@ -86,9 +96,14 @@ class RamConnection implements Connection {
         return subscribers.get(index);
     }
 
+    @Override
+    public SessionIterator<Object> sessionIterator() {
+        return sessionIterator(Object.class);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
-    public <T> SessionIterator<T> sessionIterator() {
+    public <T> SessionIterator<T> sessionIterator(final Class<T> type) {
         return sessionIterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
     }
 

@@ -20,7 +20,7 @@ public class DriverTest {
     @SuppressWarnings("rawtypes")
     @Parameterized.Parameters(name = "{0}")
     public static Collection primeNumbers() {
-        return Arrays.asList(new Object[][] { { "ActiveMQ", "activemq:/APA" }, { "RAM", "ram:/APA" } });
+        return Arrays.asList(new Object[][] { { "ActiveMQ", "activemq:/APA" }, { "RAM", "ram:/APA" }, { "RabbitMQ", "rabbitmq:/APA" } });
     }
 
     private Connection connection;
@@ -50,7 +50,7 @@ public class DriverTest {
     public void shouldHandleGetAndPutString() {
         assertThat(connection.get().isPresent(), equalTo(false));
         connection.put("hej");
-        final Optional<String> message = connection.get();
+        final Optional<String> message = connection.get(String.class);
         assertThat(message.get(), equalTo("hej"));
     }
 
@@ -58,7 +58,7 @@ public class DriverTest {
     public void shouldHandleGetAndPutBytes() {
         assertThat(connection.get().isPresent(), equalTo(false));
         connection.put("hej".getBytes());
-        final Optional<byte[]> bytes = connection.get();
+        final Optional<byte[]> bytes = connection.get(byte[].class);
         assertThat(new String(bytes.get()), equalTo("hej"));
     }
 
@@ -67,10 +67,10 @@ public class DriverTest {
         final HashMap<String, Object> header = new HashMap<String, Object>();
         header.put("CorrelationID", "B");
         connection.put("hej", header, null);
-        connection.get((Consumer<String>) (msg, cxt) -> {
+        connection.get((Consumer<Object>) (msg, cxt) -> {
             assertThat(cxt.getHeaderNames().contains("CorrelationID"), equalTo(true));
             assertThat(cxt.getHeader("CorrelationID").toString(), equalTo("B"));
-            return Optional.ofNullable((String) msg);
+            return Optional.ofNullable(msg);
         });
     }
 
@@ -79,19 +79,19 @@ public class DriverTest {
         final HashMap<String, Object> properties = new HashMap<String, Object>();
         properties.put("environment", "TEST");
         connection.put("hej", null, properties);
-        connection.get((Consumer<String>) (msg, cxt) -> {
+        connection.get((Consumer<Object>) (msg, cxt) -> {
             assertThat(cxt.getPropertyNames().contains("environment"), equalTo(true));
             assertThat(cxt.getProperty("environment").toString(), equalTo("TEST"));
-            return Optional.ofNullable((String) msg);
+            return Optional.ofNullable(msg);
         });
     }
 
     @Test
     public void shouldAcknowledgeMessage() {
         connection.put("hej");
-        connection.get((SessionConsumer<String>) (msg, cxt) -> {
+        connection.get((SessionConsumer<Object>) (msg, cxt) -> {
             cxt.acknowledgeMessage();
-            return Optional.ofNullable((String) msg);
+            return Optional.ofNullable(msg);
         });
         assertThat(connection.get().isPresent(), equalTo(false));
     }
@@ -99,24 +99,29 @@ public class DriverTest {
     @Test
     public void shouldLeaveMessage() {
         connection.put("hej");
-        connection.get((SessionConsumer<String>) (msg, cxt) -> {
+        connection.get((SessionConsumer<Object>) (msg, cxt) -> {
             cxt.leaveMessage();
-            return Optional.ofNullable((String) msg);
+            return Optional.ofNullable(msg);
         });
-        assertThat(connection.<String> get().get(), equalTo("hej"));
+        assertThat(connection.get(String.class).get(), equalTo("hej"));
     }
 
-    @Test(expected = JocoteException.class)
+    @Test
     public void shouldThrowThenNotLeavingOrAcknowledgeMessage() {
-        connection.put("hej");
-        connection.get((SessionConsumer<String>) (msg, cxt) -> Optional.ofNullable((String) msg));
+        try {
+            connection.put("hej");
+            connection.get((SessionConsumer<Object>) (msg, cxt) -> Optional.ofNullable(msg));
+        }
+        catch (final JocoteException e) {
+            assertThat(e.getMessage(), equalTo("You have to acknowledge or leave message"));
+        }
     }
 
     @Test
     public void shouldConsumeIterator() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
-        final Iterator<String> iterator = connection.iterator();
+        final Iterator<String> iterator = connection.iterator(String.class);
         int sum = 0;
         int count = 0;
         Optional<String> next = iterator.next();
@@ -136,7 +141,7 @@ public class DriverTest {
     public void shouldAcknoledgeIterator() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
-        final SessionIterator<String> iterator = connection.sessionIterator();
+        final SessionIterator<String> iterator = connection.sessionIterator(String.class);
         int sum = 0;
         int count = 0;
         Optional<String> next = iterator.next();
@@ -158,7 +163,7 @@ public class DriverTest {
     public void shouldLeaveIterator() {
         for (int i = 0; i < 100; i++)
             connection.put(String.valueOf(i));
-        final SessionIterator<String> iterator = connection.sessionIterator();
+        final SessionIterator<String> iterator = connection.sessionIterator(String.class);
         int sum = 0;
         int count = 0;
         Optional<String> next = iterator.next();
@@ -171,14 +176,14 @@ public class DriverTest {
         iterator.close();
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(4950));
-        assertThat(connection.<String> get().get(), equalTo("0"));
+        assertThat(connection.get(String.class).get(), equalTo("0"));
     }
 
-    @Test(expected = JocoteException.class)
+    @Test
     public void shouldThrowThenNotLeavingOrAcknowledgeMessageIterator() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i));
-        final SessionIterator<String> iterator = connection.sessionIterator();
+        final SessionIterator<String> iterator = connection.sessionIterator(String.class);
         int sum = 0;
         int count = 0;
         Optional<String> next = iterator.next();
@@ -191,7 +196,12 @@ public class DriverTest {
         }
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(5050));
-        iterator.close();
+        try {
+            iterator.close();
+        }
+        catch (final JocoteException e) {
+            assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));
+        }
     }
 
     private class IntWrap {

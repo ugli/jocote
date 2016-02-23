@@ -12,6 +12,7 @@ public final class DriverManager {
         tryToRegister("se.ugli.jocote.ibm.mq.IbmMqDriver");
         tryToRegister("se.ugli.jocote.jndi.JndiDriver");
         tryToRegister("se.ugli.jocote.ram.RamDriver");
+        tryToRegister("se.ugli.jocote.rabbitmq.RabbitMqDriver");
     }
 
     private static void tryToRegister(final String driver) {

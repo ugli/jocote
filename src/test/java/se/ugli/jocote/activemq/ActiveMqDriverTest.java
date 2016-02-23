@@ -16,7 +16,7 @@ public class ActiveMqDriverTest {
     public void test() {
         try (Connection connection = getConnection("activemq:/TEST")) {
             connection.put("hello world");
-            final Optional<String> msgOpt = connection.get();
+            final Optional<String> msgOpt = connection.get(String.class);
             assertThat(msgOpt.isPresent(), equalTo(true));
             assertThat(msgOpt.get(), equalTo("hello world"));
         }
