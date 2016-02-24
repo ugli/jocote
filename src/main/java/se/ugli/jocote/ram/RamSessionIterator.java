@@ -10,19 +10,19 @@ import se.ugli.jocote.SessionIterator;
 
 public class RamSessionIterator<T> implements SessionIterator<T> {
 
-    private Queue<Message> backoutQueue = new ConcurrentLinkedQueue<Message>();
+    private Queue<RamMessage> backoutQueue = new ConcurrentLinkedQueue<RamMessage>();
     private boolean closable;
-    private final Queue<Message> connectionQueue;
+    private final Queue<RamMessage> connectionQueue;
     private final Consumer<T> consumer;
 
-    public RamSessionIterator(final Queue<Message> connectionQueue, final Consumer<T> consumer) {
+    public RamSessionIterator(final Queue<RamMessage> connectionQueue, final Consumer<T> consumer) {
         this.connectionQueue = connectionQueue;
         this.consumer = consumer;
     }
 
     @Override
     public Optional<T> next() {
-        final Message message = connectionQueue.poll();
+        final RamMessage message = connectionQueue.poll();
         if (message != null) {
             backoutQueue.offer(message);
             return consumer.receive(message.body, new RamMessageContext(message));
@@ -44,7 +44,7 @@ public class RamSessionIterator<T> implements SessionIterator<T> {
 
     @Override
     public void leaveMessages() {
-        for (final Message message : backoutQueue)
+        for (final RamMessage message : backoutQueue)
             connectionQueue.offer(message);
         closable = true;
     }

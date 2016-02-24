@@ -19,7 +19,7 @@ import se.ugli.jocote.Subscription;
 
 class RamConnection implements Connection {
 
-    private final Queue<Message> queue = new ConcurrentLinkedQueue<Message>();
+    private final Queue<RamMessage> queue = new ConcurrentLinkedQueue<RamMessage>();
     private final List<Consumer<?>> subscribers = new ArrayList<Consumer<?>>();
 
     @Override
@@ -35,7 +35,7 @@ class RamConnection implements Connection {
 
     @Override
     public <T> Optional<T> get(final Consumer<T> consumer) {
-        final Message message = queue.poll();
+        final RamMessage message = queue.poll();
         if (message != null)
             return consumer.receive(message.body, new RamMessageContext(message));
         return Optional.empty();
@@ -43,7 +43,7 @@ class RamConnection implements Connection {
 
     @Override
     public <T> Optional<T> get(final SessionConsumer<T> consumer) {
-        final Message message = queue.poll();
+        final RamMessage message = queue.poll();
         if (message != null) {
             final RamSessionMessageContext cxt = new RamSessionMessageContext(message, queue);
             final Optional<T> result = consumer.receive(message.body, cxt);
@@ -72,7 +72,7 @@ class RamConnection implements Connection {
     @Override
     public void put(final byte[] body, final Map<String, Object> headers, final Map<String, Object> properties) {
         if (subscribers.isEmpty())
-            queue.offer(new Message(body, headers, properties));
+            queue.offer(new RamMessage(body, headers, properties));
         else
             randomSubscriber().receive(body, new RamMessageContext(new MessageId(), headers, properties));
     }
@@ -95,7 +95,7 @@ class RamConnection implements Connection {
     }
 
     <T> Subscription addSubscription(final Consumer<T> consumer) {
-        for (final Message message : queue)
+        for (final RamMessage message : queue)
             consumer.receive(message.body, new RamMessageContext(message));
         subscribers.add(consumer);
         return new Subscription() {

@@ -17,7 +17,7 @@ class RamMessageContext implements MessageContext {
         this.properties = properties;
     }
 
-    RamMessageContext(final Message message) {
+    RamMessageContext(final RamMessage message) {
         this.messageId = message.id;
         this.headers = message.headers;
         this.properties = message.properties;

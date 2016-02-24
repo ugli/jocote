@@ -5,11 +5,11 @@ import java.util.Queue;
 import se.ugli.jocote.SessionMessageContext;
 
 class RamSessionMessageContext extends RamMessageContext implements SessionMessageContext {
-    private final Queue<Message> connectionQueue;
-    private final Message message;
+    private final Queue<RamMessage> connectionQueue;
+    private final RamMessage message;
     private boolean closable;
 
-    RamSessionMessageContext(final Message message, final Queue<Message> connectionQueue) {
+    RamSessionMessageContext(final RamMessage message, final Queue<RamMessage> connectionQueue) {
         super(message);
         this.message = message;
         this.connectionQueue = connectionQueue;
