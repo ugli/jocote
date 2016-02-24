@@ -1,26 +1,24 @@
 package se.ugli.jocote.jms;
 
-import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
-
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 
 class JmsIterator<T> implements Iterator<T> {
 
     private final MessageConsumer jmsConsumer;
-    private final Consumer<T> jocoteConsumer;
+    private final Function<se.ugli.jocote.Message, Optional<T>> msgFunc;
     private final long receiveTimeout;
 
-    JmsIterator(final MessageConsumer jmsConsumer, final long receiveTimeout, final Consumer<T> jocoteConsumer) {
+    JmsIterator(final MessageConsumer jmsConsumer, final long receiveTimeout, final Function<se.ugli.jocote.Message, Optional<T>> msgFunc) {
         this.receiveTimeout = receiveTimeout;
-        this.jocoteConsumer = jocoteConsumer;
+        this.msgFunc = msgFunc;
         this.jmsConsumer = jmsConsumer;
     }
 
@@ -29,7 +27,7 @@ class JmsIterator<T> implements Iterator<T> {
         try {
             final Message message = jmsConsumer.receive(receiveTimeout);
             if (message != null)
-                return sendReceive(jocoteConsumer, message);
+                return msgFunc.apply(new JmsMessage(message));
             return Optional.empty();
         }
         catch (final JMSException e) {

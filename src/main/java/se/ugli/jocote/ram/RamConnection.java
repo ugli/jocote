@@ -8,11 +8,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.Subscription;
@@ -20,8 +22,8 @@ import se.ugli.jocote.support.DefaultConsumer;
 
 class RamConnection implements Connection {
 
-    private final Queue<RamMessage> queue = new ConcurrentLinkedQueue<RamMessage>();
-    private final List<Consumer<?>> subscribers = new ArrayList<Consumer<?>>();
+    private final Queue<RamMessage> queue = new ConcurrentLinkedQueue<>();
+    private final List<Consumer<Message>> subscribers = new ArrayList<>();
 
     @Override
     public void close() {
@@ -35,10 +37,10 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> get(final Consumer<T> consumer) {
+    public <T> Optional<T> get(final Function<Message, Optional<T>> msgFunc) {
         final RamMessage message = queue.poll();
         if (message != null)
-            return consumer.receive(message);
+            return msgFunc.apply(message);
         return Optional.empty();
     }
 
@@ -61,8 +63,8 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public <T> Iterator<T> iterator(final Consumer<T> consumer) {
-        return new RamIterator<T>(queue, consumer);
+    public <T> Iterator<T> iterator(final Function<Message, Optional<T>> msgFunc) {
+        return new RamIterator<T>(queue, msgFunc);
     }
 
     @Override
@@ -75,10 +77,10 @@ class RamConnection implements Connection {
         if (subscribers.isEmpty())
             queue.offer(new RamMessage(body, headers, properties));
         else
-            randomSubscriber().receive(new RamMessage(body, headers, properties));
+            randomSubscriber().accept(new RamMessage(body, headers, properties));
     }
 
-    private Consumer<?> randomSubscriber() {
+    private Consumer<Message> randomSubscriber() {
         final byte[] seed = String.valueOf(System.nanoTime()).getBytes();
         final SecureRandom secureRandom = new SecureRandom(seed);
         final int index = secureRandom.nextInt(subscribers.size());
@@ -91,13 +93,13 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public <T> SessionIterator<T> sessionIterator(final Consumer<T> consumer) {
-        return new RamSessionIterator<T>(queue, consumer);
+    public <T> SessionIterator<T> sessionIterator(final Function<Message, Optional<T>> msgFunc) {
+        return new RamSessionIterator<T>(queue, msgFunc);
     }
 
-    <T> Subscription addSubscription(final Consumer<T> consumer) {
+    Subscription addSubscription(final Consumer<Message> consumer) {
         for (final RamMessage message : queue)
-            consumer.receive(message);
+            consumer.accept(message);
         subscribers.add(consumer);
         return new Subscription() {
 

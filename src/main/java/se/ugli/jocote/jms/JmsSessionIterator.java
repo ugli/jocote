@@ -1,9 +1,9 @@
 package se.ugli.jocote.jms;
 
 import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
-import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.jms.Connection;
 import javax.jms.Destination;
@@ -12,7 +12,6 @@ import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
 
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionIterator;
 
@@ -21,15 +20,15 @@ class JmsSessionIterator<T> implements SessionIterator<T> {
     private final long receiveTimeout;
     private final Session session;
     private final MessageConsumer jmsConsumer;
-    private final Consumer<T> jocoteConsumer;
+    private final Function<se.ugli.jocote.Message, Optional<T>> msgFunc;
 
     private Message lastMessage;
     private boolean closable = false;
 
     JmsSessionIterator(final Connection connection, final Destination destination, final long receiveTimeout,
-            final Consumer<T> jocoteConsumer) {
+            final Function<se.ugli.jocote.Message, Optional<T>> msgFunc) {
         try {
-            this.jocoteConsumer = jocoteConsumer;
+            this.msgFunc = msgFunc;
             this.receiveTimeout = receiveTimeout;
             session = connection.createSession(false, CLIENT_ACKNOWLEDGE.mode);
             jmsConsumer = session.createConsumer(destination);
@@ -71,7 +70,7 @@ class JmsSessionIterator<T> implements SessionIterator<T> {
             final javax.jms.Message message = jmsConsumer.receive(receiveTimeout);
             if (message != null) {
                 lastMessage = message;
-                return sendReceive(jocoteConsumer, message);
+                return msgFunc.apply(new JmsMessage(message));
             }
             return Optional.empty();
         }

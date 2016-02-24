@@ -3,9 +3,10 @@ package se.ugli.jocote.ram;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Function;
 
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionIterator;
 
 public class RamSessionIterator<T> implements SessionIterator<T> {
@@ -13,11 +14,11 @@ public class RamSessionIterator<T> implements SessionIterator<T> {
     private Queue<RamMessage> backoutQueue = new ConcurrentLinkedQueue<RamMessage>();
     private boolean closable;
     private final Queue<RamMessage> connectionQueue;
-    private final Consumer<T> consumer;
+    private final Function<Message, Optional<T>> msgFunc;
 
-    public RamSessionIterator(final Queue<RamMessage> connectionQueue, final Consumer<T> consumer) {
+    public RamSessionIterator(final Queue<RamMessage> connectionQueue, final Function<Message, Optional<T>> msgFunc) {
         this.connectionQueue = connectionQueue;
-        this.consumer = consumer;
+        this.msgFunc = msgFunc;
     }
 
     @Override
@@ -25,7 +26,7 @@ public class RamSessionIterator<T> implements SessionIterator<T> {
         final RamMessage message = connectionQueue.poll();
         if (message != null) {
             backoutQueue.offer(message);
-            return consumer.receive(message);
+            return msgFunc.apply(message);
         }
         return Optional.empty();
     }

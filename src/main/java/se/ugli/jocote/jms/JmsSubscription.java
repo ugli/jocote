@@ -1,7 +1,8 @@
 package se.ugli.jocote.jms;
 
 import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
-import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
+
+import java.util.function.Consumer;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -12,18 +13,18 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.Session;
 
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Subscription;
 
 public class JmsSubscription implements Subscription, MessageListener {
 
     private final Connection connection;
-    private final Consumer<byte[]> consumer;
+    private final Consumer<se.ugli.jocote.Message> consumer;
     private final Session session;
     private final MessageConsumer messageConsumer;
 
-    public JmsSubscription(final ConnectionFactory connectionFactory, final Consumer<byte[]> consumer, final Destination destination) {
+    public JmsSubscription(final ConnectionFactory connectionFactory, final Consumer<se.ugli.jocote.Message> consumer,
+            final Destination destination) {
         this.consumer = consumer;
         try {
             connection = connectionFactory.createConnection();
@@ -47,7 +48,7 @@ public class JmsSubscription implements Subscription, MessageListener {
 
     @Override
     public void onMessage(final Message message) {
-        sendReceive(consumer, message);
+        consumer.accept(new JmsMessage(message));
     }
 
 }

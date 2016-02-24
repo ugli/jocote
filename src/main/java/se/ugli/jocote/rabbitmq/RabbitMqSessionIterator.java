@@ -3,27 +3,28 @@ package se.ugli.jocote.rabbitmq;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.GetResponse;
 
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionIterator;
 
 public class RabbitMqSessionIterator<T> implements SessionIterator<T> {
 
     private final String queue;
-    private final Consumer<T> consumer;
+    private final Function<Message, Optional<T>> msgFunc;
     private Channel channel;
     private boolean closable;
     private GetResponse lastMessage;
 
-    public RabbitMqSessionIterator(final Connection connection, final String queue, final Consumer<T> consumer) {
+    public RabbitMqSessionIterator(final Connection connection, final String queue, final Function<Message, Optional<T>> msgFunc) {
         try {
             this.queue = queue;
-            this.consumer = consumer;
+            this.msgFunc = msgFunc;
             this.channel = connection.createChannel();
             this.channel.queueDeclare(queue, false, false, false, null); // TODO params
         }
@@ -38,7 +39,7 @@ public class RabbitMqSessionIterator<T> implements SessionIterator<T> {
             final GetResponse basicGet = channel.basicGet(queue, false);
             if (basicGet != null) {
                 lastMessage = basicGet;
-                return consumer.receive(new RabbitMessage(basicGet));
+                return msgFunc.apply(new RabbitMessage(basicGet));
             }
             return Optional.empty();
         }

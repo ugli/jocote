@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
@@ -12,10 +13,10 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.JocoteUrl;
+import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.support.DefaultConsumer;
@@ -67,8 +68,8 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> get(final Consumer<T> consumer) {
-        return BasicGet.apply(channel, queue).get(consumer);
+    public <T> Optional<T> get(final Function<Message, Optional<T>> msgFunc) {
+        return BasicGet.apply(channel, queue).get(msgFunc);
     }
 
     @Override
@@ -107,8 +108,8 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public <T> Iterator<T> iterator(final Consumer<T> consumer) {
-        return new RabbitMqIterator<T>(channel, queue, consumer);
+    public <T> Iterator<T> iterator(final Function<Message, Optional<T>> msgFunc) {
+        return new RabbitMqIterator<T>(channel, queue, msgFunc);
     }
 
     @Override
@@ -117,8 +118,8 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public <T> SessionIterator<T> sessionIterator(final Consumer<T> consumer) {
-        return new RabbitMqSessionIterator<T>(connection, queue, consumer);
+    public <T> SessionIterator<T> sessionIterator(final Function<Message, Optional<T>> msgFunc) {
+        return new RabbitMqSessionIterator<T>(connection, queue, msgFunc);
     }
 
     @Override

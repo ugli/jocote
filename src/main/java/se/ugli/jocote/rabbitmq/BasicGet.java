@@ -2,12 +2,13 @@ package se.ugli.jocote.rabbitmq;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.function.Function;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.GetResponse;
 
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
 
 public class BasicGet {
 
@@ -23,11 +24,11 @@ public class BasicGet {
         return new BasicGet(channel, queue);
     }
 
-    public <T> Optional<T> get(final Consumer<T> consumer) {
+    public <T> Optional<T> get(final Function<Message, Optional<T>> msgFunc) {
         try {
             final GetResponse basicGet = channel.basicGet(queue, true);
             if (basicGet != null)
-                return consumer.receive(new RabbitMessage(basicGet));
+                return msgFunc.apply(new RabbitMessage(basicGet));
             return Optional.empty();
         }
         catch (final IOException e) {

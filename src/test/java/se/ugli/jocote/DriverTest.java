@@ -59,10 +59,10 @@ public class DriverTest {
         final HashMap<String, Object> header = new HashMap<String, Object>();
         header.put("CorrelationID", "B");
         connection.put("hej".getBytes(), header, null);
-        connection.get((Consumer<Object>) (cxt) -> {
-            assertThat(cxt.getHeaderNames().contains("CorrelationID"), equalTo(true));
-            assertThat(cxt.getHeader("CorrelationID").toString(), equalTo("B"));
-            return Optional.ofNullable(cxt.getBody());
+        connection.get((msg) -> {
+            assertThat(msg.getHeaderNames().contains("CorrelationID"), equalTo(true));
+            assertThat(msg.getHeader("CorrelationID").toString(), equalTo("B"));
+            return Optional.of(msg.getBody());
         });
     }
 
@@ -71,19 +71,19 @@ public class DriverTest {
         final HashMap<String, Object> properties = new HashMap<String, Object>();
         properties.put("environment", "TEST");
         connection.put("hej".getBytes(), null, properties);
-        connection.get((Consumer<Object>) (cxt) -> {
-            assertThat(cxt.getPropertyNames().contains("environment"), equalTo(true));
-            assertThat(cxt.getProperty("environment").toString(), equalTo("TEST"));
-            return Optional.ofNullable(cxt.getBody());
+        connection.get((msg) -> {
+            assertThat(msg.getPropertyNames().contains("environment"), equalTo(true));
+            assertThat(msg.getProperty("environment").toString(), equalTo("TEST"));
+            return Optional.of(msg.getBody());
         });
     }
 
     @Test
     public void shouldAcknowledgeMessage() {
         connection.put("hej".getBytes());
-        connection.get((SessionConsumer<Object>) (msg, cxt) -> {
+        connection.get((msg, cxt) -> {
             cxt.acknowledgeMessage();
-            return Optional.ofNullable(msg);
+            return Optional.of(msg);
         });
         assertThat(connection.get().isPresent(), equalTo(false));
     }
@@ -91,9 +91,9 @@ public class DriverTest {
     @Test
     public void shouldLeaveMessage() {
         connection.put("hej".getBytes());
-        connection.get((SessionConsumer<Object>) (msg, cxt) -> {
+        connection.get((msg, cxt) -> {
             cxt.leaveMessage();
-            return Optional.ofNullable(msg);
+            return Optional.of(msg);
         });
         assertThat(new String(connection.get().get()), equalTo("hej"));
     }
@@ -102,7 +102,7 @@ public class DriverTest {
     public void shouldThrowThenNotLeavingOrAcknowledgeMessage() {
         try {
             connection.put("hej".getBytes());
-            connection.get((SessionConsumer<Object>) (msg, cxt) -> Optional.ofNullable(msg));
+            connection.get((msg, cxt) -> Optional.of(msg));
         }
         catch (final JocoteException e) {
             assertThat(e.getMessage(), equalTo("You have to acknowledge or leave message"));
@@ -212,11 +212,10 @@ public class DriverTest {
             connection.put(String.valueOf(i).getBytes());
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
-        final Subscription subscription = DriverManager.subscribe(url, (cxt) -> {
-            final byte[] next = cxt.getBody();
+        final Subscription subscription = DriverManager.subscribe(url, (msg) -> {
+            final byte[] next = msg.getBody();
             count.i++;
             sum.i += Integer.parseInt(new String(next));
-            return Optional.ofNullable(next);
         });
         Thread.sleep(10);
         subscription.close();
@@ -229,11 +228,10 @@ public class DriverTest {
     public void shouldGetValuesAfterSubscribe() throws InterruptedException {
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
-        final Subscription subscription = DriverManager.subscribe(url, (cxt) -> {
-            final byte[] next = cxt.getBody();
+        final Subscription subscription = DriverManager.subscribe(url, (msg) -> {
+            final byte[] next = msg.getBody();
             count.i++;
             sum.i += Integer.parseInt(new String(next));
-            return Optional.ofNullable(next);
         });
         for (int i = 0; i < 100; i++)
             connection.put(String.valueOf(i).getBytes());

@@ -2,6 +2,7 @@ package se.ugli.jocote;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public final class DriverManager {
 
@@ -61,7 +62,7 @@ public final class DriverManager {
         }
     }
 
-    public static Subscription subscribe(final String urlStr, final Consumer<byte[]> consumer) {
+    public static Subscription subscribe(final String urlStr, final Consumer<Message> consumer) {
         final JocoteUrl url = JocoteUrl.apply(urlStr);
         return getDriver(url).subscribe(url, consumer);
     }

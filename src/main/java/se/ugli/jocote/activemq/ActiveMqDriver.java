@@ -1,5 +1,7 @@
 package se.ugli.jocote.activemq;
 
+import java.util.function.Consumer;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.Queue;
 
@@ -7,9 +9,9 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQQueue;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Driver;
 import se.ugli.jocote.JocoteUrl;
+import se.ugli.jocote.Message;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.jms.JmsConnection;
 import se.ugli.jocote.jms.JmsSubscription;
@@ -29,7 +31,7 @@ public class ActiveMqDriver implements Driver {
     }
 
     @Override
-    public Subscription subscribe(final JocoteUrl url, final Consumer<byte[]> consumer) {
+    public Subscription subscribe(final JocoteUrl url, final Consumer<Message> consumer) {
         return new JmsSubscription(connectionFactory(url), consumer, queue(url));
     }
 

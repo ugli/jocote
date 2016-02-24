@@ -2,11 +2,12 @@ package se.ugli.jocote.ram;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Driver;
 import se.ugli.jocote.JocoteUrl;
+import se.ugli.jocote.Message;
 import se.ugli.jocote.Subscription;
 
 public class RamDriver implements Driver {
@@ -25,7 +26,7 @@ public class RamDriver implements Driver {
     }
 
     @Override
-    public Subscription subscribe(final JocoteUrl url, final Consumer<byte[]> consumer) {
+    public Subscription subscribe(final JocoteUrl url, final Consumer<Message> consumer) {
         return connection(url).addSubscription(consumer);
     }
 

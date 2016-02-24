@@ -2,10 +2,10 @@ package se.ugli.jocote.jms;
 
 import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
 import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
-import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -16,7 +16,6 @@ import javax.jms.MessageProducer;
 import javax.jms.Session;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.JocoteUrl;
@@ -59,11 +58,11 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> get(final Consumer<T> consumer) {
+    public <T> Optional<T> get(final Function<se.ugli.jocote.Message, Optional<T>> msgFunc) {
         try {
             final Message message = jmsMessageConsumer().receive(receiveTimeout);
             if (message != null)
-                return sendReceive(consumer, message);
+                return msgFunc.apply(new JmsMessage(message));
             return Optional.empty();
         }
         catch (final JMSException e) {
@@ -100,8 +99,8 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> Iterator<T> iterator(final Consumer<T> consumer) {
-        return new JmsIterator<T>(jmsMessageConsumer(), receiveTimeout, consumer);
+    public <T> Iterator<T> iterator(final Function<se.ugli.jocote.Message, Optional<T>> msgFunc) {
+        return new JmsIterator<T>(jmsMessageConsumer(), receiveTimeout, msgFunc);
     }
 
     @Override
@@ -125,8 +124,8 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> SessionIterator<T> sessionIterator(final Consumer<T> consumer) {
-        return new JmsSessionIterator<T>(jmsConnection(), destination, receiveTimeout, consumer);
+    public <T> SessionIterator<T> sessionIterator(final Function<se.ugli.jocote.Message, Optional<T>> msgFunc) {
+        return new JmsSessionIterator<T>(jmsConnection(), destination, receiveTimeout, msgFunc);
     }
 
     public MessageConsumer jmsMessageConsumer() {

@@ -1,23 +1,23 @@
 package se.ugli.jocote.jms;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.command.ActiveMQTextMessage;
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
-public class MessageContextTest {
+public class JmsMessageTest {
 
     @Test
     public void jmsMessageID() throws JMSException {
         final TextMessage message = new ActiveMQTextMessage();
         message.setText("asfsDFASDFASDFASD");
         message.setJMSMessageID("hej");
-        final JmsMessage context = new JmsMessage(message);
-        assertThat((String) context.getHeader("MessageID"), CoreMatchers.equalTo("hej"));
+        final JmsMessage msg = new JmsMessage(message);
+        assertThat((String) msg.getHeader("MessageID"), equalTo("hej"));
     }
 
 }

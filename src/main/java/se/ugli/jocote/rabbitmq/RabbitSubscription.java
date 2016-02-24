@@ -2,6 +2,7 @@ package se.ugli.jocote.rabbitmq;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
@@ -9,18 +10,18 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.ShutdownSignalException;
 
-import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.JocoteUrl;
+import se.ugli.jocote.Message;
 import se.ugli.jocote.Subscription;
 
 public class RabbitSubscription implements Subscription, com.rabbitmq.client.Consumer {
 
     private final com.rabbitmq.client.Connection connection;
     private final Channel channel;
-    private final Consumer<byte[]> consumer;
+    private final Consumer<Message> consumer;
 
-    public RabbitSubscription(final JocoteUrl url, final Consumer<byte[]> consumer) {
+    public RabbitSubscription(final JocoteUrl url, final Consumer<Message> consumer) {
         try {
             final ConnectionFactory factory = new ConnectionFactory();
             if (url.host != null)
@@ -69,7 +70,7 @@ public class RabbitSubscription implements Subscription, com.rabbitmq.client.Con
 
     @Override
     public void handleDelivery(final String consumerTag, final Envelope envelope, final BasicProperties properties, final byte[] body) {
-        consumer.receive(new RabbitMessage(body, properties));
+        consumer.accept(new RabbitMessage(body, properties));
     }
 
     @Override
