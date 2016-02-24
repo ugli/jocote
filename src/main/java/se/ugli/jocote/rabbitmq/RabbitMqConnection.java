@@ -69,7 +69,15 @@ public class RabbitMqConnection implements Connection {
 
     @Override
     public <T> Optional<T> get(final Function<Message, Optional<T>> msgFunc) {
-        return BasicGet.apply(channel, queue).get(msgFunc);
+        try {
+            final GetResponse basicGet = channel.basicGet(queue, true);
+            if (basicGet != null)
+                return msgFunc.apply(MessageFactory.create(basicGet));
+            return Optional.empty();
+        }
+        catch (final IOException e) {
+            throw new JocoteException(e);
+        }
     }
 
     @Override
@@ -80,7 +88,7 @@ public class RabbitMqConnection implements Connection {
             newChannel.queueDeclare(queue, false, false, false, null); // TODO params
             final GetResponse basicGet = newChannel.basicGet(queue, false);
             if (basicGet != null) {
-                final RabbitSessionContext cxt = new RabbitSessionContext(newChannel, basicGet);
+                final RabbitMqSessionContext cxt = new RabbitMqSessionContext(newChannel, basicGet);
                 final Optional<T> result = sessionFunc.apply(cxt);
                 if (cxt.isClosable())
                     return result;
@@ -124,7 +132,7 @@ public class RabbitMqConnection implements Connection {
 
     @Override
     public void put(final byte[] message) {
-        put(new RabbitMessage(message, null));
+        put(Message.builder().body(message).build());
     }
 
     @Override

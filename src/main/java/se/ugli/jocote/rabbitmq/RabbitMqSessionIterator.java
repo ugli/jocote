@@ -13,7 +13,7 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionIterator;
 
-public class RabbitMqSessionIterator<T> implements SessionIterator<T> {
+class RabbitMqSessionIterator<T> implements SessionIterator<T> {
 
     private final String queue;
     private final Function<Message, Optional<T>> msgFunc;
@@ -21,7 +21,7 @@ public class RabbitMqSessionIterator<T> implements SessionIterator<T> {
     private boolean closable;
     private GetResponse lastMessage;
 
-    public RabbitMqSessionIterator(final Connection connection, final String queue, final Function<Message, Optional<T>> msgFunc) {
+    RabbitMqSessionIterator(final Connection connection, final String queue, final Function<Message, Optional<T>> msgFunc) {
         try {
             this.queue = queue;
             this.msgFunc = msgFunc;
@@ -39,7 +39,7 @@ public class RabbitMqSessionIterator<T> implements SessionIterator<T> {
             final GetResponse basicGet = channel.basicGet(queue, false);
             if (basicGet != null) {
                 lastMessage = basicGet;
-                return msgFunc.apply(new RabbitMessage(basicGet));
+                return msgFunc.apply(MessageFactory.create(basicGet));
             }
             return Optional.empty();
         }

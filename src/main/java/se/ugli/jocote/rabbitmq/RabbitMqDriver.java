@@ -24,7 +24,7 @@ public class RabbitMqDriver implements Driver {
 
     @Override
     public Subscription subscribe(final JocoteUrl url, final Consumer<Message> consumer) {
-        return new RabbitSubscription(url, consumer);
+        return new RabbitMqSubscription(url, consumer);
     }
 
 }

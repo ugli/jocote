@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -67,7 +68,7 @@ class RamConnection implements Connection {
 
     @Override
     public void put(final byte[] message) {
-        put(new RamMessage(message, null, null));
+        put(Message.builder().id(UUID.randomUUID().toString()).body(message).build());
     }
 
     @Override

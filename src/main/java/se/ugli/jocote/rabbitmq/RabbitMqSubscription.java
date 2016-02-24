@@ -1,6 +1,7 @@
 package se.ugli.jocote.rabbitmq;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
@@ -15,13 +16,13 @@ import se.ugli.jocote.Message;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.support.JocoteUrl;
 
-public class RabbitSubscription implements Subscription, com.rabbitmq.client.Consumer {
+class RabbitMqSubscription implements Subscription, com.rabbitmq.client.Consumer {
 
     private final com.rabbitmq.client.Connection connection;
     private final Channel channel;
     private final Consumer<Message> consumer;
 
-    public RabbitSubscription(final JocoteUrl url, final Consumer<Message> consumer) {
+    RabbitMqSubscription(final JocoteUrl url, final Consumer<Message> consumer) {
         try {
             final ConnectionFactory factory = new ConnectionFactory();
             if (url.host != null)
@@ -70,7 +71,9 @@ public class RabbitSubscription implements Subscription, com.rabbitmq.client.Con
 
     @Override
     public void handleDelivery(final String consumerTag, final Envelope envelope, final BasicProperties properties, final byte[] body) {
-        consumer.accept(new RabbitMessage(body, properties));
+        final Map<String, Object> headers = properties.getHeaders();
+        final Message message = Message.builder().id(properties.getMessageId()).body(body).properties(headers).headers(headers).build();
+        consumer.accept(message);
     }
 
     @Override

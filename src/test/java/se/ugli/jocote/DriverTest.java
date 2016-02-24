@@ -5,8 +5,6 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Optional;
 
 import org.junit.After;
@@ -14,8 +12,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import se.ugli.jocote.ram.RamMessage;
 
 @RunWith(Parameterized.class)
 public class DriverTest {
@@ -59,9 +55,7 @@ public class DriverTest {
 
     @Test
     public void shouldGetHeaderValue() {
-        final HashMap<String, Object> header = new HashMap<String, Object>();
-        header.put("CorrelationID", "B");
-        connection.put(new RamMessage("hej".getBytes(), header, Collections.emptyMap()));
+        connection.put(Message.builder().body("hej".getBytes()).header("CorrelationID", "B").build());
         connection.get((msg) -> {
             assertThat(msg.headerNames().contains("CorrelationID"), equalTo(true));
             assertThat(msg.header("CorrelationID").toString(), equalTo("B"));
@@ -71,9 +65,7 @@ public class DriverTest {
 
     @Test
     public void shouldGetPropertyValue() {
-        final HashMap<String, Object> properties = new HashMap<String, Object>();
-        properties.put("environment", "TEST");
-        connection.put(new RamMessage("hej".getBytes(), Collections.emptyMap(), properties));
+        connection.put(Message.builder().body("hej".getBytes()).property("environment", "TEST").build());
         connection.get((msg) -> {
             assertThat(msg.propertyNames().contains("environment"), equalTo(true));
             assertThat(msg.property("environment").toString(), equalTo("TEST"));

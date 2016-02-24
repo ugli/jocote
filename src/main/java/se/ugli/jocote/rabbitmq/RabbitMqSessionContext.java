@@ -10,17 +10,17 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionContext;
 
-class RabbitSessionContext implements SessionContext {
+class RabbitMqSessionContext implements SessionContext {
 
     private boolean closable;
     private final Channel channel;
     private final Envelope envelope;
     private final Message message;
 
-    public RabbitSessionContext(final Channel channel, final GetResponse response) {
+    RabbitMqSessionContext(final Channel channel, final GetResponse response) {
         this.channel = channel;
         envelope = response.getEnvelope();
-        message = new RabbitMessage(response);
+        message = MessageFactory.create(response);
     }
 
     @Override
