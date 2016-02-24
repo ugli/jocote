@@ -8,7 +8,6 @@ import com.rabbitmq.client.GetResponse;
 
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.MessageContext;
 
 public class BasicGet {
 
@@ -27,10 +26,8 @@ public class BasicGet {
     public <T> Optional<T> get(final Consumer<T> consumer) {
         try {
             final GetResponse basicGet = channel.basicGet(queue, true);
-            if (basicGet != null) {
-                final MessageContext cxt = new RabbitMqCxt(basicGet);
-                return consumer.receive(basicGet.getBody(), cxt);
-            }
+            if (basicGet != null)
+                return consumer.receive(new RabbitMqCxt(basicGet));
             return Optional.empty();
         }
         catch (final IOException e) {

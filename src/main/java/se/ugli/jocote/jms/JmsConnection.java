@@ -4,7 +4,6 @@ import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
 import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,6 +22,7 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.support.DefaultConsumer;
 
 public class JmsConnection implements Connection {
 
@@ -55,13 +55,16 @@ public class JmsConnection implements Connection {
 
     @Override
     public Optional<byte[]> get() {
-        return get((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
+        return get(new DefaultConsumer());
     }
 
     @Override
     public <T> Optional<T> get(final Consumer<T> consumer) {
         try {
-            return sendReceive(consumer, jmsMessageConsumer().receive(receiveTimeout));
+            final Message message = jmsMessageConsumer().receive(receiveTimeout);
+            if (message != null)
+                return sendReceive(consumer, message);
+            return Optional.empty();
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -93,7 +96,7 @@ public class JmsConnection implements Connection {
 
     @Override
     public Iterator<byte[]> iterator() {
-        return iterator((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
+        return iterator(new DefaultConsumer());
     }
 
     @Override
@@ -103,7 +106,7 @@ public class JmsConnection implements Connection {
 
     @Override
     public void put(final byte[] message) {
-        put(message, new HashMap<String, Object>(), new HashMap<String, Object>());
+        put(message, null, null);
     }
 
     @Override
@@ -118,7 +121,7 @@ public class JmsConnection implements Connection {
 
     @Override
     public SessionIterator<byte[]> sessionIterator() {
-        return sessionIterator((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
+        return sessionIterator(new DefaultConsumer());
     }
 
     @Override

@@ -12,12 +12,14 @@ import se.ugli.jocote.MessageContext;
 class RabbitMqCxt implements MessageContext {
 
     private final BasicProperties properties;
+    private final byte[] body;
 
     RabbitMqCxt(final GetResponse response) {
-        this(response.getProps());
+        this(response.getBody(), response.getProps());
     }
 
-    public RabbitMqCxt(final BasicProperties properties) {
+    public RabbitMqCxt(final byte[] body, final BasicProperties properties) {
+        this.body = body;
         this.properties = properties;
     }
 
@@ -54,6 +56,11 @@ class RabbitMqCxt implements MessageContext {
     @Override
     public <T> T getProperty(final String propertyName) {
         return (T) headers().get(propertyName);
+    }
+
+    @Override
+    public byte[] getBody() {
+        return body;
     }
 
 }

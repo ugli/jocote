@@ -14,6 +14,7 @@ public class MessageContextTest {
     @Test
     public void jmsMessageID() throws JMSException {
         final TextMessage message = new ActiveMQTextMessage();
+        message.setText("asfsDFASDFASDFASD");
         message.setJMSMessageID("hej");
         final JmsMessageContext context = new JmsMessageContext(message);
         assertThat((String) context.getHeader("MessageID"), CoreMatchers.equalTo("hej"));

@@ -1,17 +1,20 @@
 package se.ugli.jocote.ram;
 
-import se.ugli.jocote.MessageContext;
-
 import java.util.Map;
 import java.util.Set;
+
+import se.ugli.jocote.MessageContext;
 
 class RamMessageContext implements MessageContext {
 
     private final Map<String, Object> headers;
     private final Map<String, Object> properties;
     private final MessageId messageId;
+    private final byte[] body;
 
-    RamMessageContext(MessageId messageId, final Map<String, Object> headers, final Map<String, Object> properties) {
+    RamMessageContext(final byte[] body, final MessageId messageId, final Map<String, Object> headers,
+            final Map<String, Object> properties) {
+        this.body = body;
         this.messageId = messageId;
         this.headers = headers;
         this.properties = properties;
@@ -21,6 +24,7 @@ class RamMessageContext implements MessageContext {
         this.messageId = message.id;
         this.headers = message.headers;
         this.properties = message.properties;
+        this.body = message.body;
     }
 
     @Override
@@ -48,5 +52,10 @@ class RamMessageContext implements MessageContext {
     @Override
     public Set<String> getPropertyNames() {
         return properties.keySet();
+    }
+
+    @Override
+    public byte[] getBody() {
+        return body;
     }
 }

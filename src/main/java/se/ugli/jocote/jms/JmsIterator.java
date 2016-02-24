@@ -5,6 +5,7 @@ import static se.ugli.jocote.jms.ConsumerHelper.sendReceive;
 import java.util.Optional;
 
 import javax.jms.JMSException;
+import javax.jms.Message;
 import javax.jms.MessageConsumer;
 
 import se.ugli.jocote.Consumer;
@@ -26,7 +27,10 @@ class JmsIterator<T> implements Iterator<T> {
     @Override
     public Optional<T> next() {
         try {
-            return sendReceive(jocoteConsumer, jmsConsumer.receive(receiveTimeout));
+            final Message message = jmsConsumer.receive(receiveTimeout);
+            if (message != null)
+                return sendReceive(jocoteConsumer, message);
+            return Optional.empty();
         }
         catch (final JMSException e) {
             throw new JocoteException(e);

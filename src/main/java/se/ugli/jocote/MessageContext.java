@@ -4,6 +4,8 @@ import java.util.Set;
 
 public interface MessageContext {
 
+    byte[] getBody();
+
     String getMessageId();
 
     Set<String> getHeaderNames();

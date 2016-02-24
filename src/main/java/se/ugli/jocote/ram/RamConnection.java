@@ -16,6 +16,7 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.Subscription;
+import se.ugli.jocote.support.DefaultConsumer;
 
 class RamConnection implements Connection {
 
@@ -30,14 +31,14 @@ class RamConnection implements Connection {
 
     @Override
     public Optional<byte[]> get() {
-        return get((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
+        return get(new DefaultConsumer());
     }
 
     @Override
     public <T> Optional<T> get(final Consumer<T> consumer) {
         final RamMessage message = queue.poll();
         if (message != null)
-            return consumer.receive(message.body, new RamMessageContext(message));
+            return consumer.receive(new RamMessageContext(message));
         return Optional.empty();
     }
 
@@ -56,7 +57,7 @@ class RamConnection implements Connection {
 
     @Override
     public Iterator<byte[]> iterator() {
-        return iterator((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
+        return iterator(new DefaultConsumer());
     }
 
     @Override
@@ -74,7 +75,7 @@ class RamConnection implements Connection {
         if (subscribers.isEmpty())
             queue.offer(new RamMessage(body, headers, properties));
         else
-            randomSubscriber().receive(body, new RamMessageContext(new MessageId(), headers, properties));
+            randomSubscriber().receive(new RamMessageContext(body, new MessageId(), headers, properties));
     }
 
     private Consumer<?> randomSubscriber() {
@@ -86,7 +87,7 @@ class RamConnection implements Connection {
 
     @Override
     public SessionIterator<byte[]> sessionIterator() {
-        return sessionIterator((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
+        return sessionIterator(new DefaultConsumer());
     }
 
     @Override
@@ -96,7 +97,7 @@ class RamConnection implements Connection {
 
     <T> Subscription addSubscription(final Consumer<T> consumer) {
         for (final RamMessage message : queue)
-            consumer.receive(message.body, new RamMessageContext(message));
+            consumer.receive(new RamMessageContext(message));
         subscribers.add(consumer);
         return new Subscription() {
 

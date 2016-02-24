@@ -25,7 +25,7 @@ public class RamSessionIterator<T> implements SessionIterator<T> {
         final RamMessage message = connectionQueue.poll();
         if (message != null) {
             backoutQueue.offer(message);
-            return consumer.receive(message.body, new RamMessageContext(message));
+            return consumer.receive(new RamMessageContext(message));
         }
         return Optional.empty();
     }

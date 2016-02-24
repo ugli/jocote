@@ -38,7 +38,7 @@ public class RabbitMqSessionIterator<T> implements SessionIterator<T> {
             final GetResponse basicGet = channel.basicGet(queue, false);
             if (basicGet != null) {
                 lastMessage = basicGet;
-                return consumer.receive(basicGet.getBody(), new RabbitMqCxt(basicGet));
+                return consumer.receive(new RabbitMqCxt(basicGet));
             }
             return Optional.empty();
         }

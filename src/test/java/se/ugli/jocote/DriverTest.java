@@ -59,10 +59,10 @@ public class DriverTest {
         final HashMap<String, Object> header = new HashMap<String, Object>();
         header.put("CorrelationID", "B");
         connection.put("hej".getBytes(), header, null);
-        connection.get((Consumer<Object>) (msg, cxt) -> {
+        connection.get((Consumer<Object>) (cxt) -> {
             assertThat(cxt.getHeaderNames().contains("CorrelationID"), equalTo(true));
             assertThat(cxt.getHeader("CorrelationID").toString(), equalTo("B"));
-            return Optional.ofNullable(msg);
+            return Optional.ofNullable(cxt.getBody());
         });
     }
 
@@ -71,10 +71,10 @@ public class DriverTest {
         final HashMap<String, Object> properties = new HashMap<String, Object>();
         properties.put("environment", "TEST");
         connection.put("hej".getBytes(), null, properties);
-        connection.get((Consumer<Object>) (msg, cxt) -> {
+        connection.get((Consumer<Object>) (cxt) -> {
             assertThat(cxt.getPropertyNames().contains("environment"), equalTo(true));
             assertThat(cxt.getProperty("environment").toString(), equalTo("TEST"));
-            return Optional.ofNullable(msg);
+            return Optional.ofNullable(cxt.getBody());
         });
     }
 
@@ -212,8 +212,8 @@ public class DriverTest {
             connection.put(String.valueOf(i).getBytes());
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
-        final Subscription subscription = DriverManager.subscribe(url, (msg, cxt) -> {
-            final byte[] next = msg;
+        final Subscription subscription = DriverManager.subscribe(url, (cxt) -> {
+            final byte[] next = cxt.getBody();
             count.i++;
             sum.i += Integer.parseInt(new String(next));
             return Optional.ofNullable(next);
@@ -229,8 +229,8 @@ public class DriverTest {
     public void shouldGetValuesAfterSubscribe() throws InterruptedException {
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
-        final Subscription subscription = DriverManager.subscribe(url, (msg, cxt) -> {
-            final byte[] next = msg;
+        final Subscription subscription = DriverManager.subscribe(url, (cxt) -> {
+            final byte[] next = cxt.getBody();
             count.i++;
             sum.i += Integer.parseInt(new String(next));
             return Optional.ofNullable(next);

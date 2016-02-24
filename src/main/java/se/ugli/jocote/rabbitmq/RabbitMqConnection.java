@@ -18,6 +18,7 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.SessionConsumer;
 import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.support.DefaultConsumer;
 
 public class RabbitMqConnection implements Connection {
 
