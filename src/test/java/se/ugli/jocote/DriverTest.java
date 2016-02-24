@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Optional;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +22,6 @@ public class DriverTest {
         return Arrays.asList(new Object[][] { { "ActiveMQ", "activemq:/APA" }, { "RAM", "ram:/APA" } });
     }
 
-    private Connection connection;
     private final String url;
 
     public DriverTest(final String testName, final String url) {
@@ -32,166 +30,181 @@ public class DriverTest {
 
     @Before
     public void clearQueue() {
-        connection = DriverManager.getConnection(url);
-        final Iterator<Object> iterator = connection.iterator();
-        while (iterator.next().isPresent())
-            ;
-        connection.close();
-        connection = DriverManager.getConnection(url);
-    }
-
-    @After
-    public void close() {
-        connection.close();
-        connection = null;
+        try (Connection connection = DriverManager.getConnection(url)) {
+            final Iterator<Object> iterator = connection.iterator();
+            while (iterator.next().isPresent())
+                ;
+        }
     }
 
     @Test
     public void shouldHandleGetAndPutString() {
-        assertThat(connection.get().isPresent(), equalTo(false));
-        connection.put("hej");
-        final Optional<String> message = connection.get();
-        assertThat(message.get(), equalTo("hej"));
+        try (Connection connection = DriverManager.getConnection(url)) {
+            assertThat(connection.get().isPresent(), equalTo(false));
+            connection.put("hej");
+            final Optional<String> message = connection.get();
+            assertThat(message.get(), equalTo("hej"));
+        }
     }
 
     @Test
     public void shouldHandleGetAndPutBytes() {
-        assertThat(connection.get().isPresent(), equalTo(false));
-        connection.put("hej".getBytes());
-        final Optional<byte[]> bytes = connection.get();
-        assertThat(new String(bytes.get()), equalTo("hej"));
+        try (Connection connection = DriverManager.getConnection(url)) {
+            assertThat(connection.get().isPresent(), equalTo(false));
+            connection.put("hej".getBytes());
+            final Optional<byte[]> bytes = connection.get();
+            assertThat(new String(bytes.get()), equalTo("hej"));
+        }
     }
 
     @Test
     public void shouldGetHeaderValue() {
-        final HashMap<String, Object> header = new HashMap<String, Object>();
-        header.put("CorrelationID", "B");
-        connection.put("hej", header, null);
-        connection.get((Consumer<String>) (msg, cxt) -> {
-            assertThat(cxt.getHeaderNames().contains("CorrelationID"), equalTo(true));
-            assertThat(cxt.getHeader("CorrelationID").toString(), equalTo("B"));
-            return Optional.ofNullable((String) msg);
-        });
+        try (Connection connection = DriverManager.getConnection(url)) {
+            final HashMap<String, Object> header = new HashMap<String, Object>();
+            header.put("CorrelationID", "B");
+            connection.put("hej", header, null);
+            connection.get((Consumer<String>) (msg, cxt) -> {
+                assertThat(cxt.getHeaderNames().contains("CorrelationID"), equalTo(true));
+                assertThat(cxt.getHeader("CorrelationID").toString(), equalTo("B"));
+                return Optional.ofNullable((String) msg);
+            });
+        }
     }
 
     @Test
     public void shouldGetPropertyValue() {
-        final HashMap<String, Object> properties = new HashMap<String, Object>();
-        properties.put("environment", "TEST");
-        connection.put("hej", null, properties);
-        connection.get((Consumer<String>) (msg, cxt) -> {
-            assertThat(cxt.getPropertyNames().contains("environment"), equalTo(true));
-            assertThat(cxt.getProperty("environment").toString(), equalTo("TEST"));
-            return Optional.ofNullable((String) msg);
-        });
+        try (Connection connection = DriverManager.getConnection(url)) {
+            final HashMap<String, Object> properties = new HashMap<String, Object>();
+            properties.put("environment", "TEST");
+            connection.put("hej", null, properties);
+            connection.get((Consumer<String>) (msg, cxt) -> {
+                assertThat(cxt.getPropertyNames().contains("environment"), equalTo(true));
+                assertThat(cxt.getProperty("environment").toString(), equalTo("TEST"));
+                return Optional.ofNullable((String) msg);
+            });
+        }
     }
 
     @Test
     public void shouldAcknowledgeMessage() {
-        connection.put("hej");
-        connection.get((SessionConsumer<String>) (msg, cxt) -> {
-            cxt.acknowledgeMessage();
-            return Optional.ofNullable((String) msg);
-        });
-        assertThat(connection.get().isPresent(), equalTo(false));
+        try (Connection connection = DriverManager.getConnection(url)) {
+            connection.put("hej");
+            connection.get((SessionConsumer<String>) (msg, cxt) -> {
+                cxt.acknowledgeMessage();
+                return Optional.ofNullable((String) msg);
+            });
+            assertThat(connection.get().isPresent(), equalTo(false));
+        }
     }
 
     @Test
     public void shouldLeaveMessage() {
-        connection.put("hej");
-        connection.get((SessionConsumer<String>) (msg, cxt) -> {
-            cxt.leaveMessage();
-            return Optional.ofNullable((String) msg);
-        });
-        assertThat(connection.<String> get().get(), equalTo("hej"));
+        try (Connection connection = DriverManager.getConnection(url)) {
+            connection.put("hej");
+            connection.get((SessionConsumer<String>) (msg, cxt) -> {
+                cxt.leaveMessage();
+                return Optional.ofNullable((String) msg);
+            });
+            assertThat(connection.<String> get().get(), equalTo("hej"));
+        }
     }
 
     @Test(expected = JocoteException.class)
     public void shouldThrowThenNotLeavingOrAcknowledgeMessage() {
-        connection.put("hej");
-        connection.get((SessionConsumer<String>) (msg, cxt) -> Optional.ofNullable((String) msg));
+        try (Connection connection = DriverManager.getConnection(url)) {
+            connection.put("hej");
+            connection.get((SessionConsumer<String>) (msg, cxt) -> Optional.ofNullable((String) msg));
+        }
     }
 
     @Test
     public void shouldConsumeIterator() {
-        for (int i = 0; i <= 100; i++)
-            connection.put(String.valueOf(i));
-        final Iterator<String> iterator = connection.iterator();
-        int sum = 0;
-        int count = 0;
-        Optional<String> next = iterator.next();
-        while (next.isPresent()) {
-            next = iterator.next();
-            if (next.isPresent()) {
-                count++;
-                sum += Integer.parseInt(next.get());
+        try (Connection connection = DriverManager.getConnection(url)) {
+            for (int i = 0; i <= 100; i++)
+                connection.put(String.valueOf(i));
+            final Iterator<String> iterator = connection.iterator();
+            int sum = 0;
+            int count = 0;
+            Optional<String> next = iterator.next();
+            while (next.isPresent()) {
+                next = iterator.next();
+                if (next.isPresent()) {
+                    count++;
+                    sum += Integer.parseInt(next.get());
+                }
             }
+            assertThat(count, equalTo(100));
+            assertThat(sum, equalTo(5050));
+            assertThat(connection.get().isPresent(), equalTo(false));
         }
-        assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(5050));
-        assertThat(connection.get().isPresent(), equalTo(false));
     }
 
     @Test
     public void shouldAcknoledgeIterator() {
-        for (int i = 0; i <= 100; i++)
-            connection.put(String.valueOf(i));
-        final SessionIterator<String> iterator = connection.sessionIterator();
-        int sum = 0;
-        int count = 0;
-        Optional<String> next = iterator.next();
-        while (next.isPresent()) {
-            next = iterator.next();
-            if (next.isPresent()) {
-                count++;
-                sum += Integer.parseInt(next.get());
+        try (Connection connection = DriverManager.getConnection(url)) {
+            for (int i = 0; i <= 100; i++)
+                connection.put(String.valueOf(i));
+            final SessionIterator<String> iterator = connection.sessionIterator();
+            int sum = 0;
+            int count = 0;
+            Optional<String> next = iterator.next();
+            while (next.isPresent()) {
+                next = iterator.next();
+                if (next.isPresent()) {
+                    count++;
+                    sum += Integer.parseInt(next.get());
+                }
             }
+            iterator.acknowledgeMessages();
+            iterator.close();
+            assertThat(count, equalTo(100));
+            assertThat(sum, equalTo(5050));
+            assertThat(connection.get().isPresent(), equalTo(false));
         }
-        iterator.acknowledgeMessages();
-        iterator.close();
-        assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(5050));
-        assertThat(connection.get().isPresent(), equalTo(false));
     }
 
     @Test
     public void shouldLeaveIterator() {
-        for (int i = 0; i < 100; i++)
-            connection.put(String.valueOf(i));
-        final SessionIterator<String> iterator = connection.sessionIterator();
-        int sum = 0;
-        int count = 0;
-        Optional<String> next = iterator.next();
-        while (next.isPresent()) {
-            count++;
-            sum += Integer.parseInt(next.get());
-            next = iterator.next();
+        try (Connection connection = DriverManager.getConnection(url)) {
+            for (int i = 0; i < 100; i++)
+                connection.put(String.valueOf(i));
+            final SessionIterator<String> iterator = connection.sessionIterator();
+            int sum = 0;
+            int count = 0;
+            Optional<String> next = iterator.next();
+            while (next.isPresent()) {
+                count++;
+                sum += Integer.parseInt(next.get());
+                next = iterator.next();
+            }
+            iterator.leaveMessages();
+            iterator.close();
+            assertThat(count, equalTo(100));
+            assertThat(sum, equalTo(4950));
+            assertThat(connection.<String> get().get(), equalTo("0"));
         }
-        iterator.leaveMessages();
-        iterator.close();
-        assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(4950));
-        assertThat(connection.<String> get().get(), equalTo("0"));
     }
 
     @Test(expected = JocoteException.class)
     public void shouldThrowThenNotLeavingOrAcknowledgeMessageIterator() {
-        for (int i = 0; i <= 100; i++)
-            connection.put(String.valueOf(i));
-        final SessionIterator<String> iterator = connection.sessionIterator();
-        int sum = 0;
-        int count = 0;
-        Optional<String> next = iterator.next();
-        while (next.isPresent()) {
-            next = iterator.next();
-            if (next.isPresent()) {
-                count++;
-                sum += Integer.parseInt(next.get());
+        try (Connection connection = DriverManager.getConnection(url)) {
+            for (int i = 0; i <= 100; i++)
+                connection.put(String.valueOf(i));
+            final SessionIterator<String> iterator = connection.sessionIterator();
+            int sum = 0;
+            int count = 0;
+            Optional<String> next = iterator.next();
+            while (next.isPresent()) {
+                next = iterator.next();
+                if (next.isPresent()) {
+                    count++;
+                    sum += Integer.parseInt(next.get());
+                }
             }
+            assertThat(count, equalTo(100));
+            assertThat(sum, equalTo(5050));
+            iterator.close();
         }
-        assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(5050));
-        iterator.close();
     }
 
     private class IntWrap {
@@ -206,40 +219,44 @@ public class DriverTest {
 
     @Test
     public void shouldGetValuesWhenSubscribe() throws InterruptedException {
-        for (int i = 0; i < 100; i++)
-            connection.put(String.valueOf(i));
-        final IntWrap sum = new IntWrap();
-        final IntWrap count = new IntWrap();
-        final Subscription<String> subscription = DriverManager.subscribe(url, (msg, cxt) -> {
-            final String next = (String) msg;
-            count.i++;
-            sum.i += Integer.parseInt(next);
-            return Optional.ofNullable(next);
-        });
-        Thread.sleep(10);
-        subscription.close();
-        assertThat(count.i, equalTo(100));
-        assertThat(sum.i, equalTo(4950));
-        assertThat(connection.get().isPresent(), equalTo(false));
+        try (Connection connection = DriverManager.getConnection(url)) {
+            for (int i = 0; i < 100; i++)
+                connection.put(String.valueOf(i));
+            final IntWrap sum = new IntWrap();
+            final IntWrap count = new IntWrap();
+            final Subscription<String> subscription = DriverManager.subscribe(url, (msg, cxt) -> {
+                final String next = (String) msg;
+                count.i++;
+                sum.i += Integer.parseInt(next);
+                return Optional.ofNullable(next);
+            });
+            Thread.sleep(10);
+            subscription.close();
+            assertThat(count.i, equalTo(100));
+            assertThat(sum.i, equalTo(4950));
+            assertThat(connection.get().isPresent(), equalTo(false));
+        }
     }
 
     @Test
     public void shouldGetValuesAfterSubscribe() throws InterruptedException {
-        final IntWrap sum = new IntWrap();
-        final IntWrap count = new IntWrap();
-        final Subscription<String> subscription = DriverManager.subscribe(url, (msg, cxt) -> {
-            final String next = (String) msg;
-            count.i++;
-            sum.i += Integer.parseInt(next);
-            return Optional.ofNullable(next);
-        });
-        for (int i = 0; i < 100; i++)
-            connection.put(String.valueOf(i));
-        Thread.sleep(10);
-        subscription.close();
-        assertThat(count.i, equalTo(100));
-        assertThat(sum.i, equalTo(4950));
-        assertThat(connection.get().isPresent(), equalTo(false));
+        try (Connection connection = DriverManager.getConnection(url)) {
+            final IntWrap sum = new IntWrap();
+            final IntWrap count = new IntWrap();
+            final Subscription<String> subscription = DriverManager.subscribe(url, (msg, cxt) -> {
+                final String next = (String) msg;
+                count.i++;
+                sum.i += Integer.parseInt(next);
+                return Optional.ofNullable(next);
+            });
+            for (int i = 0; i < 100; i++)
+                connection.put(String.valueOf(i));
+            Thread.sleep(10);
+            subscription.close();
+            assertThat(count.i, equalTo(100));
+            assertThat(sum.i, equalTo(4950));
+            assertThat(connection.get().isPresent(), equalTo(false));
+        }
     }
 
 }
