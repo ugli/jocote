@@ -24,7 +24,7 @@ class RabbitMessage implements Message {
     }
 
     @Override
-    public String getMessageId() {
+    public String id() {
         if (properties != null)
             return properties.getMessageId();
         return null;
@@ -37,29 +37,29 @@ class RabbitMessage implements Message {
     }
 
     @Override
-    public Set<String> getHeaderNames() {
+    public Set<String> headerNames() {
         return headers().keySet();
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getHeader(final String headerName) {
+    public <T> T header(final String headerName) {
         return (T) headers().get(headerName);
     }
 
     @Override
-    public Set<String> getPropertyNames() {
+    public Set<String> propertyNames() {
         return headers().keySet();
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getProperty(final String propertyName) {
+    public <T> T property(final String propertyName) {
         return (T) headers().get(propertyName);
     }
 
     @Override
-    public byte[] getBody() {
+    public byte[] body() {
         return body;
     }
 

@@ -1,6 +1,5 @@
 package se.ugli.jocote;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -25,6 +24,6 @@ public interface Connection extends AutoCloseable {
 
     void put(byte[] message);
 
-    void put(byte[] message, Map<String, Object> headers, Map<String, Object> properties);
+    void put(Message message);
 
 }

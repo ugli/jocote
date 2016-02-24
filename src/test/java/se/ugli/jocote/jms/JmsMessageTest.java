@@ -17,7 +17,7 @@ public class JmsMessageTest {
         message.setText("asfsDFASDFASDFASD");
         message.setJMSMessageID("hej");
         final JmsMessage msg = new JmsMessage(message);
-        assertThat((String) msg.getHeader("MessageID"), equalTo("hej"));
+        assertThat((String) msg.header("MessageID"), equalTo("hej"));
     }
 
 }

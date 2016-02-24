@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -13,6 +14,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+
+import se.ugli.jocote.ram.RamMessage;
 
 @RunWith(Parameterized.class)
 public class DriverTest {
@@ -58,11 +61,11 @@ public class DriverTest {
     public void shouldGetHeaderValue() {
         final HashMap<String, Object> header = new HashMap<String, Object>();
         header.put("CorrelationID", "B");
-        connection.put("hej".getBytes(), header, null);
+        connection.put(new RamMessage("hej".getBytes(), header, Collections.emptyMap()));
         connection.get((msg) -> {
-            assertThat(msg.getHeaderNames().contains("CorrelationID"), equalTo(true));
-            assertThat(msg.getHeader("CorrelationID").toString(), equalTo("B"));
-            return Optional.of(msg.getBody());
+            assertThat(msg.headerNames().contains("CorrelationID"), equalTo(true));
+            assertThat(msg.header("CorrelationID").toString(), equalTo("B"));
+            return Optional.of(msg.body());
         });
     }
 
@@ -70,11 +73,11 @@ public class DriverTest {
     public void shouldGetPropertyValue() {
         final HashMap<String, Object> properties = new HashMap<String, Object>();
         properties.put("environment", "TEST");
-        connection.put("hej".getBytes(), null, properties);
+        connection.put(new RamMessage("hej".getBytes(), Collections.emptyMap(), properties));
         connection.get((msg) -> {
-            assertThat(msg.getPropertyNames().contains("environment"), equalTo(true));
-            assertThat(msg.getProperty("environment").toString(), equalTo("TEST"));
-            return Optional.of(msg.getBody());
+            assertThat(msg.propertyNames().contains("environment"), equalTo(true));
+            assertThat(msg.property("environment").toString(), equalTo("TEST"));
+            return Optional.of(msg.body());
         });
     }
 
@@ -213,7 +216,7 @@ public class DriverTest {
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
         final Subscription subscription = DriverManager.subscribe(url, (msg) -> {
-            final byte[] next = msg.getBody();
+            final byte[] next = msg.body();
             count.i++;
             sum.i += Integer.parseInt(new String(next));
         });
@@ -229,7 +232,7 @@ public class DriverTest {
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
         final Subscription subscription = DriverManager.subscribe(url, (msg) -> {
-            final byte[] next = msg.getBody();
+            final byte[] next = msg.body();
             count.i++;
             sum.i += Integer.parseInt(new String(next));
         });

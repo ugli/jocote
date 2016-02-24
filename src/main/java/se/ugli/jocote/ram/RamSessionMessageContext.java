@@ -6,11 +6,11 @@ import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionContext;
 
 class RamSessionMessageContext implements SessionContext {
-    private final Queue<RamMessage> connectionQueue;
-    private final RamMessage message;
+    private final Queue<Message> connectionQueue;
+    private final Message message;
     private boolean closable;
 
-    RamSessionMessageContext(final RamMessage message, final Queue<RamMessage> connectionQueue) {
+    RamSessionMessageContext(final Message message, final Queue<Message> connectionQueue) {
         this.message = message;
         this.connectionQueue = connectionQueue;
     }

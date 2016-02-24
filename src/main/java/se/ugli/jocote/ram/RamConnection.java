@@ -2,9 +2,7 @@ package se.ugli.jocote.ram;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -22,7 +20,7 @@ import se.ugli.jocote.support.DefaultConsumer;
 
 class RamConnection implements Connection {
 
-    private final Queue<RamMessage> queue = new ConcurrentLinkedQueue<>();
+    private final Queue<Message> queue = new ConcurrentLinkedQueue<>();
     private final List<Consumer<Message>> subscribers = new ArrayList<>();
 
     @Override
@@ -38,7 +36,7 @@ class RamConnection implements Connection {
 
     @Override
     public <T> Optional<T> get(final Function<Message, Optional<T>> msgFunc) {
-        final RamMessage message = queue.poll();
+        final Message message = queue.poll();
         if (message != null)
             return msgFunc.apply(message);
         return Optional.empty();
@@ -46,7 +44,7 @@ class RamConnection implements Connection {
 
     @Override
     public <T> Optional<T> getWithSession(final Function<SessionContext, Optional<T>> sessionFunc) {
-        final RamMessage message = queue.poll();
+        final Message message = queue.poll();
         if (message != null) {
             final RamSessionMessageContext cxt = new RamSessionMessageContext(message, queue);
             final Optional<T> result = sessionFunc.apply(cxt);
@@ -69,15 +67,15 @@ class RamConnection implements Connection {
 
     @Override
     public void put(final byte[] message) {
-        put(message, new HashMap<String, Object>(), new HashMap<String, Object>());
+        put(new RamMessage(message, null, null));
     }
 
     @Override
-    public void put(final byte[] body, final Map<String, Object> headers, final Map<String, Object> properties) {
+    public void put(final Message message) {
         if (subscribers.isEmpty())
-            queue.offer(new RamMessage(body, headers, properties));
+            queue.offer(message);
         else
-            randomSubscriber().accept(new RamMessage(body, headers, properties));
+            randomSubscriber().accept(message);
     }
 
     private Consumer<Message> randomSubscriber() {
@@ -98,7 +96,7 @@ class RamConnection implements Connection {
     }
 
     Subscription addSubscription(final Consumer<Message> consumer) {
-        for (final RamMessage message : queue)
+        for (final Message message : queue)
             consumer.accept(message);
         subscribers.add(consumer);
         return new Subscription() {

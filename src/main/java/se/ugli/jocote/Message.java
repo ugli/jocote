@@ -4,16 +4,16 @@ import java.util.Set;
 
 public interface Message {
 
-    byte[] getBody();
+    byte[] body();
 
-    String getMessageId();
+    String id();
 
-    Set<String> getHeaderNames();
+    Set<String> headerNames();
 
-    <T> T getHeader(String headerName);
+    <T> T header(String headerName);
 
-    Set<String> getPropertyNames();
+    Set<String> propertyNames();
 
-    <T> T getProperty(String propertyName);
+    <T> T property(String propertyName);
 
 }

@@ -12,6 +12,7 @@ import static se.ugli.jocote.jms.JmsHeaders.ReplyTo;
 import static se.ugli.jocote.jms.JmsHeaders.Timestamp;
 import static se.ugli.jocote.jms.JmsHeaders.Type;
 
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,35 +80,41 @@ class JmsMessage implements se.ugli.jocote.Message {
         properties = createProperties(message);
     }
 
+    public JmsMessage(final byte[] message) {
+        body = message;
+        headers = Collections.emptyMap();
+        properties = Collections.emptyMap();
+    }
+
     @Override
-    public String getMessageId() {
+    public String id() {
         return (String) headers.get(MessageID);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getHeader(final String headerName) {
+    public <T> T header(final String headerName) {
         return (T) headers.get(headerName);
     }
 
     @Override
-    public Set<String> getHeaderNames() {
+    public Set<String> headerNames() {
         return headers.keySet();
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T getProperty(final String propertyName) {
+    public <T> T property(final String propertyName) {
         return (T) properties.get(propertyName);
     }
 
     @Override
-    public Set<String> getPropertyNames() {
+    public Set<String> propertyNames() {
         return properties.keySet();
     }
 
     @Override
-    public byte[] getBody() {
+    public byte[] body() {
         return body;
     }
 

@@ -9,7 +9,7 @@ public class DefaultConsumer implements Function<Message, Optional<byte[]>> {
 
     @Override
     public Optional<byte[]> apply(final Message cxt) {
-        return Optional.of(cxt.getBody());
+        return Optional.of(cxt.body());
     }
 
 }

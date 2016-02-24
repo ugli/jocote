@@ -3,7 +3,6 @@ package se.ugli.jocote.jms;
 import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
 import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -105,13 +104,13 @@ public class JmsConnection implements Connection {
 
     @Override
     public void put(final byte[] message) {
-        put(message, null, null);
+        put(new JmsMessage(message));
     }
 
     @Override
-    public void put(final byte[] message, final Map<String, Object> headers, final Map<String, Object> properties) {
+    public void put(final se.ugli.jocote.Message message) {
         try {
-            jmsMessageProducer().send(MessageFactory.createJmsMessage(jmsSession(), message, headers, properties));
+            jmsMessageProducer().send(MessageFactory.createJmsMessage(jmsSession(), message));
         }
         catch (final JMSException e) {
             throw new JocoteException(e);

@@ -124,20 +124,18 @@ public class RabbitMqConnection implements Connection {
 
     @Override
     public void put(final byte[] message) {
-        put(message, null, null);
+        put(new RabbitMessage(message, null));
     }
 
     @Override
-    public void put(final byte[] message, final Map<String, Object> headers, final Map<String, Object> properties) {
+    public void put(final Message message) {
         try {
             final BasicProperties.Builder builder = new BasicProperties.Builder();
             final Map<String, Object> newHeaders = new HashMap<>();
-            if (headers != null)
-                newHeaders.putAll(headers);
-            if (properties != null)
-                newHeaders.putAll(properties);
+            message.headerNames().forEach(name -> newHeaders.put(name, message.header(name)));
+            message.propertyNames().forEach(name -> newHeaders.put(name, message.property(name)));
             builder.headers(newHeaders);
-            channel.basicPublish("", queue, builder.build(), message);
+            channel.basicPublish("", queue, builder.build(), message.body());
         }
         catch (final IOException e) {
             throw new JocoteException(e);
