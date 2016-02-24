@@ -21,9 +21,8 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 
 import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.MessageContext;
 
-class JmsMessageContext implements MessageContext {
+class JmsMessage implements se.ugli.jocote.Message {
 
     private static Map<String, Object> createHeaders(final Message message) {
         final Map<String, Object> result = new HashMap<String, Object>();
@@ -74,7 +73,7 @@ class JmsMessageContext implements MessageContext {
     private final Map<String, Object> properties;
     private final byte[] body;
 
-    JmsMessageContext(final Message message) {
+    JmsMessage(final Message message) {
         body = MessageFactory.getBytes(message);
         headers = createHeaders(message);
         properties = createProperties(message);

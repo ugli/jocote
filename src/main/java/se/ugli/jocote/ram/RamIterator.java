@@ -20,7 +20,7 @@ public class RamIterator<T> implements Iterator<T> {
     public Optional<T> next() {
         final RamMessage message = connectionQueue.poll();
         if (message != null)
-            return consumer.receive(new RamMessageContext(message));
+            return consumer.receive(message);
         return Optional.empty();
     }
 

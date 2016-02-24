@@ -69,7 +69,7 @@ public class RabbitSubscription implements Subscription, com.rabbitmq.client.Con
 
     @Override
     public void handleDelivery(final String consumerTag, final Envelope envelope, final BasicProperties properties, final byte[] body) {
-        consumer.receive(new RabbitMqCxt(body, properties));
+        consumer.receive(new RabbitMessage(body, properties));
     }
 
     @Override

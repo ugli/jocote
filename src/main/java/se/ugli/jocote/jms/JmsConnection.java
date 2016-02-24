@@ -79,7 +79,7 @@ public class JmsConnection implements Connection {
             session = jmsConnection().createSession(false, CLIENT_ACKNOWLEDGE.mode);
             messageConsumer = session.createConsumer(destination);
             final Message message = messageConsumer.receive(receiveTimeout);
-            final JmsSessionMessageContext cxt = new JmsSessionMessageContext(message);
+            final JmsSessionContext cxt = new JmsSessionContext(message);
             final Optional<T> result = consumer.receive(MessageFactory.getBytes(message), cxt);
             if (cxt.isClosable())
                 return result;

@@ -7,18 +7,18 @@ import java.util.Set;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.GetResponse;
 
-import se.ugli.jocote.MessageContext;
+import se.ugli.jocote.Message;
 
-class RabbitMqCxt implements MessageContext {
+class RabbitMessage implements Message {
 
     private final BasicProperties properties;
     private final byte[] body;
 
-    RabbitMqCxt(final GetResponse response) {
+    RabbitMessage(final GetResponse response) {
         this(response.getBody(), response.getProps());
     }
 
-    public RabbitMqCxt(final byte[] body, final BasicProperties properties) {
+    public RabbitMessage(final byte[] body, final BasicProperties properties) {
         this.body = body;
         this.properties = properties;
     }

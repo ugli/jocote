@@ -1,6 +1,9 @@
 package se.ugli.jocote;
 
-public interface SessionMessageContext extends MessageContext {
+public interface SessionContext {
+
+    Message message();
+
     void acknowledgeMessage();
 
     void leaveMessage();

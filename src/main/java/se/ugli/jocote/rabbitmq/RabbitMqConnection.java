@@ -79,7 +79,7 @@ public class RabbitMqConnection implements Connection {
             newChannel.queueDeclare(queue, false, false, false, null); // TODO params
             final GetResponse basicGet = newChannel.basicGet(queue, false);
             if (basicGet != null) {
-                final RabbitSessionMsgCxt cxt = new RabbitSessionMsgCxt(newChannel, basicGet);
+                final RabbitSessionContext cxt = new RabbitSessionContext(newChannel, basicGet);
                 final Optional<T> result = consumer.receive(basicGet.getBody(), cxt);
                 if (cxt.isClosable())
                     return result;

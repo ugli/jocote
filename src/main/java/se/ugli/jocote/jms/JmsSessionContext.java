@@ -1,19 +1,25 @@
 package se.ugli.jocote.jms;
 
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.SessionMessageContext;
-
 import javax.jms.JMSException;
 import javax.jms.Message;
 
-class JmsSessionMessageContext extends JmsMessageContext implements SessionMessageContext {
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.SessionContext;
+
+class JmsSessionContext implements SessionContext {
 
     private boolean closable;
-    private Message message;
+    private final Message message;
+    private final se.ugli.jocote.Message jocoteJmsMessage;
 
-    JmsSessionMessageContext(final Message message) {
-        super(message);
+    JmsSessionContext(final Message message) {
         this.message = message;
+        this.jocoteJmsMessage = new JmsMessage(message);
+    }
+
+    @Override
+    public se.ugli.jocote.Message message() {
+        return jocoteJmsMessage;
     }
 
     @Override

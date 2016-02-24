@@ -2,7 +2,7 @@ package se.ugli.jocote;
 
 import java.util.Set;
 
-public interface MessageContext {
+public interface Message {
 
     byte[] getBody();
 

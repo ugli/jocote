@@ -38,7 +38,7 @@ class RamConnection implements Connection {
     public <T> Optional<T> get(final Consumer<T> consumer) {
         final RamMessage message = queue.poll();
         if (message != null)
-            return consumer.receive(new RamMessageContext(message));
+            return consumer.receive(message);
         return Optional.empty();
     }
 
@@ -75,7 +75,7 @@ class RamConnection implements Connection {
         if (subscribers.isEmpty())
             queue.offer(new RamMessage(body, headers, properties));
         else
-            randomSubscriber().receive(new RamMessageContext(body, new MessageId(), headers, properties));
+            randomSubscriber().receive(new RamMessage(body, headers, properties));
     }
 
     private Consumer<?> randomSubscriber() {
@@ -97,7 +97,7 @@ class RamConnection implements Connection {
 
     <T> Subscription addSubscription(final Consumer<T> consumer) {
         for (final RamMessage message : queue)
-            consumer.receive(new RamMessageContext(message));
+            consumer.receive(message);
         subscribers.add(consumer);
         return new Subscription() {
 

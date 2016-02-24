@@ -27,7 +27,7 @@ public class BasicGet {
         try {
             final GetResponse basicGet = channel.basicGet(queue, true);
             if (basicGet != null)
-                return consumer.receive(new RabbitMqCxt(basicGet));
+                return consumer.receive(new RabbitMessage(basicGet));
             return Optional.empty();
         }
         catch (final IOException e) {

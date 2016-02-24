@@ -7,18 +7,25 @@ import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.GetResponse;
 
 import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.SessionMessageContext;
+import se.ugli.jocote.Message;
+import se.ugli.jocote.SessionContext;
 
-class RabbitSessionMsgCxt extends RabbitMqCxt implements SessionMessageContext {
+class RabbitSessionContext implements SessionContext {
 
     private boolean closable;
     private final Channel channel;
     private final Envelope envelope;
+    private final Message message;
 
-    public RabbitSessionMsgCxt(final Channel channel, final GetResponse response) {
-        super(response);
+    public RabbitSessionContext(final Channel channel, final GetResponse response) {
         this.channel = channel;
         envelope = response.getEnvelope();
+        message = new RabbitMessage(response);
+    }
+
+    @Override
+    public Message message() {
+        return message;
     }
 
     @Override

@@ -5,6 +5,6 @@ import java.util.Optional;
 @FunctionalInterface
 public interface Consumer<T> {
 
-    Optional<T> receive(MessageContext cxt);
+    Optional<T> receive(Message cxt);
 
 }

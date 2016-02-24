@@ -16,7 +16,7 @@ public class MessageContextTest {
         final TextMessage message = new ActiveMQTextMessage();
         message.setText("asfsDFASDFASDFASD");
         message.setJMSMessageID("hej");
-        final JmsMessageContext context = new JmsMessageContext(message);
+        final JmsMessage context = new JmsMessage(message);
         assertThat((String) context.getHeader("MessageID"), CoreMatchers.equalTo("hej"));
     }
 
