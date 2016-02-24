@@ -17,7 +17,7 @@ import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionConsumer;
+import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.support.DefaultConsumer;
 
@@ -73,7 +73,7 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> getWithSession(final SessionConsumer<T> consumer) {
+    public <T> Optional<T> getWithSession(final Function<SessionContext, Optional<T>> sessionFunc) {
         Channel newChannel = null;
         try {
             newChannel = connection.createChannel();
@@ -81,7 +81,7 @@ public class RabbitMqConnection implements Connection {
             final GetResponse basicGet = newChannel.basicGet(queue, false);
             if (basicGet != null) {
                 final RabbitSessionContext cxt = new RabbitSessionContext(newChannel, basicGet);
-                final Optional<T> result = consumer.apply(cxt);
+                final Optional<T> result = sessionFunc.apply(cxt);
                 if (cxt.isClosable())
                     return result;
                 throw new JocoteException("You have to acknowledge or leave message");

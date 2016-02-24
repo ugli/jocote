@@ -15,7 +15,7 @@ import se.ugli.jocote.Connection;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionConsumer;
+import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.support.DefaultConsumer;
@@ -45,16 +45,16 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> getWithSession(final SessionConsumer<T> consumer) {
+    public <T> Optional<T> getWithSession(final Function<SessionContext, Optional<T>> sessionFunc) {
         final RamMessage message = queue.poll();
         if (message != null) {
             final RamSessionMessageContext cxt = new RamSessionMessageContext(message, queue);
-            final Optional<T> result = consumer.apply(cxt);
+            final Optional<T> result = sessionFunc.apply(cxt);
             if (cxt.isClosable())
                 return result;
             throw new JocoteException("You have to acknowledge or leave message");
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

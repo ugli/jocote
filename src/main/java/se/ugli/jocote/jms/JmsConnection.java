@@ -19,7 +19,7 @@ import se.ugli.jocote.Connection;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.JocoteUrl;
-import se.ugli.jocote.SessionConsumer;
+import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.support.DefaultConsumer;
 
@@ -71,7 +71,7 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> getWithSession(final SessionConsumer<T> consumer) {
+    public <T> Optional<T> getWithSession(final Function<SessionContext, Optional<T>> sessionFunc) {
         Session session = null;
         MessageConsumer messageConsumer = null;
         try {
@@ -79,7 +79,7 @@ public class JmsConnection implements Connection {
             messageConsumer = session.createConsumer(destination);
             final Message message = messageConsumer.receive(receiveTimeout);
             final JmsSessionContext cxt = new JmsSessionContext(message);
-            final Optional<T> result = consumer.apply(cxt);
+            final Optional<T> result = sessionFunc.apply(cxt);
             if (cxt.isClosable())
                 return result;
             throw new JocoteException("You have to acknowledge or leave message");
