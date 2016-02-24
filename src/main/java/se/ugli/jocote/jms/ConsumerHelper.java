@@ -9,7 +9,7 @@ import se.ugli.jocote.Consumer;
 class ConsumerHelper {
 
     static <T> Optional<T> sendReceive(final Consumer<T> consumer, final Message message) {
-        return consumer.receive(MessageFactory.createObjectMessage(message), new JmsMessageContext(message));
+        return consumer.receive(MessageFactory.getBytes(message), new JmsMessageContext(message));
     }
 
 }

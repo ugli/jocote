@@ -16,14 +16,14 @@ import se.ugli.jocote.Consumer;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Subscription;
 
-public class JmsSubscription<T> implements Subscription<T>, MessageListener {
+public class JmsSubscription implements Subscription, MessageListener {
 
     private final Connection connection;
-    private final Consumer<T> consumer;
+    private final Consumer<byte[]> consumer;
     private final Session session;
     private final MessageConsumer messageConsumer;
 
-    public JmsSubscription(final ConnectionFactory connectionFactory, final Consumer<T> consumer, final Destination destination) {
+    public JmsSubscription(final ConnectionFactory connectionFactory, final Consumer<byte[]> consumer, final Destination destination) {
         this.consumer = consumer;
         try {
             connection = connectionFactory.createConnection();

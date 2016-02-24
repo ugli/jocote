@@ -21,8 +21,8 @@ public class RabbitMqDriver implements Driver {
     }
 
     @Override
-    public <T> Subscription<T> subscribe(final JocoteUrl url, final Consumer<T> consumer) {
-        return new RabbitSubscription<T>(url, consumer);
+    public Subscription subscribe(final JocoteUrl url, final Consumer<byte[]> consumer) {
+        return new RabbitSubscription(url, consumer);
     }
 
 }

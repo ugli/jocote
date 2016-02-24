@@ -29,14 +29,8 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public Optional<Object> get() {
-        return get(Object.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> Optional<T> get(final Class<T> type) {
-        return get((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
+    public Optional<byte[]> get() {
+        return get((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
     }
 
     @Override
@@ -61,14 +55,8 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public Iterator<Object> iterator() {
-        return iterator(Object.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> Iterator<T> iterator(final Class<T> type) {
-        return iterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
+    public Iterator<byte[]> iterator() {
+        return iterator((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
     }
 
     @Override
@@ -77,12 +65,12 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public void put(final Object message) {
+    public void put(final byte[] message) {
         put(message, new HashMap<String, Object>(), new HashMap<String, Object>());
     }
 
     @Override
-    public void put(final Object body, final Map<String, Object> headers, final Map<String, Object> properties) {
+    public void put(final byte[] body, final Map<String, Object> headers, final Map<String, Object> properties) {
         if (subscribers.isEmpty())
             queue.offer(new Message(body, headers, properties));
         else
@@ -97,14 +85,8 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public SessionIterator<Object> sessionIterator() {
-        return sessionIterator(Object.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> SessionIterator<T> sessionIterator(final Class<T> type) {
-        return sessionIterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
+    public SessionIterator<byte[]> sessionIterator() {
+        return sessionIterator((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
     }
 
     @Override
@@ -112,11 +94,11 @@ class RamConnection implements Connection {
         return new RamSessionIterator<T>(queue, consumer);
     }
 
-    <T> Subscription<T> addSubscription(final Consumer<T> consumer) {
+    <T> Subscription addSubscription(final Consumer<T> consumer) {
         for (final Message message : queue)
             consumer.receive(message.body, new RamMessageContext(message));
         subscribers.add(consumer);
-        return new Subscription<T>() {
+        return new Subscription() {
 
             @Override
             public void close() {

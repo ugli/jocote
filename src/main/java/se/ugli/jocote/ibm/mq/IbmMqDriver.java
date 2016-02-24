@@ -35,8 +35,8 @@ public class IbmMqDriver implements Driver {
     }
 
     @Override
-    public <T> Subscription<T> subscribe(final JocoteUrl url, final Consumer<T> consumer) {
-        return new JmsSubscription<T>(connectionFactory(url), consumer, queue(url));
+    public Subscription subscribe(final JocoteUrl url, final Consumer<byte[]> consumer) {
+        return new JmsSubscription(connectionFactory(url), consumer, queue(url));
     }
 
     private ConnectionFactory connectionFactory(final JocoteUrl url) {

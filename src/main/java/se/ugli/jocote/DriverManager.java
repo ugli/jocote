@@ -61,7 +61,7 @@ public final class DriverManager {
         }
     }
 
-    public static <T> Subscription<T> subscribe(final String urlStr, final Consumer<T> consumer) {
+    public static Subscription subscribe(final String urlStr, final Consumer<byte[]> consumer) {
         final JocoteUrl url = JocoteUrl.apply(urlStr);
         return getDriver(url).subscribe(url, consumer);
     }

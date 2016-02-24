@@ -1,54 +1,27 @@
 package se.ugli.jocote.jms;
 
-import se.ugli.jocote.JocoteException;
-
-import javax.jms.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.jms.BytesMessage;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+
+import se.ugli.jocote.JocoteException;
+
 class MessageFactory {
 
-    public static Message createJmsMessage(final Session session, final Object message, final Map<String, Object> headers,
-            final Map<String, Object> properties) {
-        try {
-            if (message instanceof String) {
-                final TextMessage textMessage = session.createTextMessage();
-                addHeadersAndProperties(textMessage, headers, properties);
-                textMessage.setText((String) message);
-                return textMessage;
-            }
-            else if (message instanceof byte[]) {
-                final BytesMessage bytesMessage = session.createBytesMessage();
-                addHeadersAndProperties(bytesMessage, headers, properties);
-                bytesMessage.writeBytes((byte[]) message);
-                return bytesMessage;
-            }
-            else
-                throw new UnsupportedOperationException(message.getClass().getName());
-        }
-        catch (final JMSException e) {
-            throw new JocoteException(e);
-        }
-        catch (final NoSuchMethodException e) {
-            throw new JocoteException(e);
-        }
-        catch (final IllegalAccessException e) {
-            throw new JocoteException(e);
-        }
-        catch (final InvocationTargetException e) {
-            throw new JocoteException(e);
-        }
-    }
-
-    public static Object createObjectMessage(final Message message) {
+    public static byte[] getBytes(final Message message) {
         try {
             if (message == null)
                 return null;
             else if (message instanceof TextMessage) {
                 final TextMessage textMessage = (TextMessage) message;
-                return textMessage.getText();
+                return textMessage.getText().getBytes();
             }
             else if (message instanceof BytesMessage) {
                 final BytesMessage bytesMessage = (BytesMessage) message;
@@ -60,6 +33,19 @@ class MessageFactory {
                 throw new UnsupportedOperationException(message.getClass().getName());
         }
         catch (final JMSException e) {
+            throw new JocoteException(e);
+        }
+    }
+
+    public static Message createJmsMessage(final Session session, final byte[] message, final Map<String, Object> headers,
+            final Map<String, Object> properties) {
+        try {
+            final BytesMessage bytesMessage = session.createBytesMessage();
+            addHeadersAndProperties(bytesMessage, headers, properties);
+            bytesMessage.writeBytes(message);
+            return bytesMessage;
+        }
+        catch (final JMSException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new JocoteException(e);
         }
     }

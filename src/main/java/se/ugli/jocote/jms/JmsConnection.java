@@ -54,14 +54,8 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public Optional<Object> get() {
-        return get(Object.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> Optional<T> get(final Class<T> type) {
-        return get((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
+    public Optional<byte[]> get() {
+        return get((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
     }
 
     @Override
@@ -83,7 +77,7 @@ public class JmsConnection implements Connection {
             messageConsumer = session.createConsumer(destination);
             final Message message = messageConsumer.receive(receiveTimeout);
             final JmsSessionMessageContext cxt = new JmsSessionMessageContext(message);
-            final Optional<T> result = consumer.receive(MessageFactory.createObjectMessage(message), cxt);
+            final Optional<T> result = consumer.receive(MessageFactory.getBytes(message), cxt);
             if (cxt.isClosable())
                 return result;
             throw new JocoteException("You have to acknowledge or leave message");
@@ -98,14 +92,8 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public Iterator<Object> iterator() {
-        return iterator(Object.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> Iterator<T> iterator(final Class<T> type) {
-        return iterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
+    public Iterator<byte[]> iterator() {
+        return iterator((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
     }
 
     @Override
@@ -114,12 +102,12 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public void put(final Object message) {
+    public void put(final byte[] message) {
         put(message, new HashMap<String, Object>(), new HashMap<String, Object>());
     }
 
     @Override
-    public void put(final Object message, final Map<String, Object> headers, final Map<String, Object> properties) {
+    public void put(final byte[] message, final Map<String, Object> headers, final Map<String, Object> properties) {
         try {
             jmsMessageProducer().send(MessageFactory.createJmsMessage(jmsSession(), message, headers, properties));
         }
@@ -129,14 +117,8 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public SessionIterator<Object> sessionIterator() {
-        return sessionIterator(Object.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> SessionIterator<T> sessionIterator(final Class<T> type) {
-        return sessionIterator((Consumer<T>) (message, cxt) -> Optional.ofNullable((T) message));
+    public SessionIterator<byte[]> sessionIterator() {
+        return sessionIterator((Consumer<byte[]>) (message, cxt) -> Optional.ofNullable(message));
     }
 
     @Override

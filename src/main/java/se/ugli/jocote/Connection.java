@@ -8,28 +8,22 @@ public interface Connection extends AutoCloseable {
     @Override
     void close();
 
-    Optional<Object> get();
-
-    <T> Optional<T> get(Class<T> type);
+    Optional<byte[]> get();
 
     <T> Optional<T> get(Consumer<T> consumer);
 
     <T> Optional<T> get(SessionConsumer<T> consumer);
 
-    Iterator<Object> iterator();
-
-    <T> Iterator<T> iterator(Class<T> type);
+    Iterator<byte[]> iterator();
 
     <T> Iterator<T> iterator(Consumer<T> consumer);
 
-    SessionIterator<Object> sessionIterator();
-
-    <T> SessionIterator<T> sessionIterator(Class<T> type);
+    SessionIterator<byte[]> sessionIterator();
 
     <T> SessionIterator<T> sessionIterator(Consumer<T> consumer);
 
-    void put(Object message);
+    void put(byte[] message);
 
-    void put(Object message, Map<String, Object> headers, Map<String, Object> properties);
+    void put(byte[] message, Map<String, Object> headers, Map<String, Object> properties);
 
 }

@@ -60,9 +60,9 @@ public class JndiDriver implements Driver {
     }
 
     @Override
-    public <T> Subscription<T> subscribe(final JocoteUrl url, final Consumer<T> consumer) {
+    public Subscription subscribe(final JocoteUrl url, final Consumer<byte[]> consumer) {
         try {
-            return new JmsSubscription<T>(connectionFactory(url), consumer, queue(url));
+            return new JmsSubscription(connectionFactory(url), consumer, queue(url));
         }
         catch (final NamingException e) {
             throw new JocoteException(e);

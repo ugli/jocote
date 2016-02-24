@@ -15,10 +15,10 @@ public class ActiveMqDriverTest {
     @Test
     public void test() {
         try (Connection connection = getConnection("activemq:/TEST")) {
-            connection.put("hello world");
-            final Optional<String> msgOpt = connection.get(String.class);
+            connection.put("hello world".getBytes());
+            final Optional<byte[]> msgOpt = connection.get();
             assertThat(msgOpt.isPresent(), equalTo(true));
-            assertThat(msgOpt.get(), equalTo("hello world"));
+            assertThat(new String(msgOpt.get()), equalTo("hello world"));
         }
     }
 

@@ -6,6 +6,6 @@ public interface Driver {
 
     Connection getConnection(JocoteUrl url);
 
-    <T> Subscription<T> subscribe(JocoteUrl url, Consumer<T> consumer);
+    Subscription subscribe(JocoteUrl url, Consumer<byte[]> consumer);
 
 }

@@ -14,13 +14,13 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.Subscription;
 
-public class RabbitSubscription<T> implements Subscription<T>, com.rabbitmq.client.Consumer {
+public class RabbitSubscription implements Subscription, com.rabbitmq.client.Consumer {
 
     private final com.rabbitmq.client.Connection connection;
     private final Channel channel;
-    private final Consumer<T> consumer;
+    private final Consumer<byte[]> consumer;
 
-    public RabbitSubscription(final JocoteUrl url, final Consumer<T> consumer) {
+    public RabbitSubscription(final JocoteUrl url, final Consumer<byte[]> consumer) {
         try {
             final ConnectionFactory factory = new ConnectionFactory();
             if (url.host != null)
@@ -31,8 +31,7 @@ public class RabbitSubscription<T> implements Subscription<T>, com.rabbitmq.clie
                 factory.setPort(url.port);
             connection = factory.newConnection();
             channel = connection.createChannel();
-            channel.queueDeclare(url.queue, false, false, false, null); // TODO params
-            channel.basicConsume(url.queue, this);
+            channel.basicConsume(url.queue, true, this);
         }
         catch (final TimeoutException | IOException e) {
             throw new JocoteException(e);

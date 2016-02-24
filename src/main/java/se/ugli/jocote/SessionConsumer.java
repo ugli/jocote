@@ -5,6 +5,6 @@ import java.util.Optional;
 @FunctionalInterface
 public interface SessionConsumer<T> {
 
-    Optional<T> receive(Object msg, SessionMessageContext cxt);
+    Optional<T> receive(byte[] msg, SessionMessageContext cxt);
 
 }

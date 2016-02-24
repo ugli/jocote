@@ -5,10 +5,10 @@ import java.util.Optional;
 import se.ugli.jocote.Consumer;
 import se.ugli.jocote.MessageContext;
 
-class DefaultConsumer implements Consumer<Object> {
+class DefaultConsumer implements Consumer<byte[]> {
 
     @Override
-    public Optional<Object> receive(final Object msg, final MessageContext cxt) {
+    public Optional<byte[]> receive(final byte[] msg, final MessageContext cxt) {
         return Optional.ofNullable(msg);
     }
 

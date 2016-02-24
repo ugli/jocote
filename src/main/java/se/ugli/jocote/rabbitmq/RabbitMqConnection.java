@@ -61,13 +61,8 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public Optional<Object> get() {
+    public Optional<byte[]> get() {
         return get(new DefaultConsumer());
-    }
-
-    @Override
-    public <T> Optional<T> get(final Class<T> type) {
-        return get(new TypeConsumer<T>(type));
     }
 
     @Override
@@ -106,13 +101,8 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public Iterator<Object> iterator() {
+    public Iterator<byte[]> iterator() {
         return iterator(new DefaultConsumer());
-    }
-
-    @Override
-    public <T> Iterator<T> iterator(final Class<T> type) {
-        return iterator(new TypeConsumer<T>(type));
     }
 
     @Override
@@ -121,13 +111,8 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public SessionIterator<Object> sessionIterator() {
+    public SessionIterator<byte[]> sessionIterator() {
         return sessionIterator(new DefaultConsumer());
-    }
-
-    @Override
-    public <T> SessionIterator<T> sessionIterator(final Class<T> type) {
-        return sessionIterator(new TypeConsumer<T>(type));
     }
 
     @Override
@@ -136,12 +121,12 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public void put(final Object message) {
-        put(message, new HashMap<String, Object>(), new HashMap<String, Object>());
+    public void put(final byte[] message) {
+        put(message, null, null);
     }
 
     @Override
-    public void put(final Object message, final Map<String, Object> headers, final Map<String, Object> properties) {
+    public void put(final byte[] message, final Map<String, Object> headers, final Map<String, Object> properties) {
         try {
             final BasicProperties.Builder builder = new BasicProperties.Builder();
             final Map<String, Object> newHeaders = new HashMap<>();
@@ -150,21 +135,11 @@ public class RabbitMqConnection implements Connection {
             if (properties != null)
                 newHeaders.putAll(properties);
             builder.headers(newHeaders);
-            channel.basicPublish("", queue, builder.build(), message(message));
+            channel.basicPublish("", queue, builder.build(), message);
         }
         catch (final IOException e) {
             throw new JocoteException(e);
         }
-    }
-
-    private byte[] message(final Object message) {
-        if (message == null)
-            return null;
-        else if (message instanceof String)
-            return ((String) message).getBytes();
-        else if (message instanceof byte[])
-            return (byte[]) message;
-        throw new JocoteException("Unsupported message type: " + message.getClass().getName());
     }
 
 }
