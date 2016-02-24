@@ -9,14 +9,16 @@ import javax.jms.TextMessage;
 import org.apache.activemq.command.ActiveMQTextMessage;
 import org.junit.Test;
 
-public class JmsMessageTest {
+import se.ugli.jocote.Message;
+
+public class MessageFactoryTest {
 
     @Test
     public void jmsMessageID() throws JMSException {
         final TextMessage message = new ActiveMQTextMessage();
         message.setText("asfsDFASDFASDFASD");
         message.setJMSMessageID("hej");
-        final JmsMessage msg = new JmsMessage(message);
+        final Message msg = MessageFactory.create(message);
         assertThat((String) msg.header("MessageID"), equalTo("hej"));
     }
 

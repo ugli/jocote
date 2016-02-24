@@ -1,8 +1,13 @@
 package se.ugli.jocote.jms;
 
+import javax.jms.Session;
+
 enum AcknowledgeMode {
 
-    AUTO_ACKNOWLEDGE(1), CLIENT_ACKNOWLEDGE(2), DUPS_OK_ACKNOWLEDGE(3), SESSION_TRANSACTED(0);
+    AUTO_ACKNOWLEDGE(Session.AUTO_ACKNOWLEDGE),
+    CLIENT_ACKNOWLEDGE(Session.CLIENT_ACKNOWLEDGE),
+    DUPS_OK_ACKNOWLEDGE(Session.DUPS_OK_ACKNOWLEDGE),
+    SESSION_TRANSACTED(Session.SESSION_TRANSACTED);
 
     final int mode;
 

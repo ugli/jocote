@@ -8,23 +8,22 @@ import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageListener;
 import javax.jms.Session;
 
 import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
 import se.ugli.jocote.Subscription;
 
 public class JmsSubscription implements Subscription, MessageListener {
 
     private final Connection connection;
-    private final Consumer<se.ugli.jocote.Message> consumer;
+    private final Consumer<Message> consumer;
     private final Session session;
     private final MessageConsumer messageConsumer;
 
-    public JmsSubscription(final ConnectionFactory connectionFactory, final Consumer<se.ugli.jocote.Message> consumer,
-            final Destination destination) {
+    public JmsSubscription(final ConnectionFactory connectionFactory, final Consumer<Message> consumer, final Destination destination) {
         this.consumer = consumer;
         try {
             connection = connectionFactory.createConnection();
@@ -47,8 +46,8 @@ public class JmsSubscription implements Subscription, MessageListener {
     }
 
     @Override
-    public void onMessage(final Message message) {
-        consumer.accept(new JmsMessage(message));
+    public void onMessage(final javax.jms.Message message) {
+        consumer.accept(MessageFactory.create(message));
     }
 
 }

@@ -9,7 +9,6 @@ import java.util.function.Function;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
@@ -17,6 +16,7 @@ import javax.jms.Session;
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.support.DefaultConsumer;
@@ -57,11 +57,11 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> get(final Function<se.ugli.jocote.Message, Optional<T>> msgFunc) {
+    public <T> Optional<T> get(final Function<Message, Optional<T>> msgFunc) {
         try {
-            final Message message = jmsMessageConsumer().receive(receiveTimeout);
+            final javax.jms.Message message = jmsMessageConsumer().receive(receiveTimeout);
             if (message != null)
-                return msgFunc.apply(new JmsMessage(message));
+                return msgFunc.apply(MessageFactory.create(message));
             return Optional.empty();
         }
         catch (final JMSException e) {
@@ -76,7 +76,9 @@ public class JmsConnection implements Connection {
         try {
             session = jmsConnection().createSession(false, CLIENT_ACKNOWLEDGE.mode);
             messageConsumer = session.createConsumer(destination);
-            final Message message = messageConsumer.receive(receiveTimeout);
+            final javax.jms.Message message = messageConsumer.receive(receiveTimeout);
+            if (message == null)
+                return Optional.empty();
             final JmsSessionContext cxt = new JmsSessionContext(message);
             final Optional<T> result = sessionFunc.apply(cxt);
             if (cxt.isClosable())
@@ -104,13 +106,13 @@ public class JmsConnection implements Connection {
 
     @Override
     public void put(final byte[] message) {
-        put(new JmsMessage(message));
+        put(se.ugli.jocote.Message.builder().body(message).build());
     }
 
     @Override
     public void put(final se.ugli.jocote.Message message) {
         try {
-            jmsMessageProducer().send(MessageFactory.createJmsMessage(jmsSession(), message));
+            jmsMessageProducer().send(JmsMessageFactory.create(jmsSession(), message));
         }
         catch (final JMSException e) {
             throw new JocoteException(e);

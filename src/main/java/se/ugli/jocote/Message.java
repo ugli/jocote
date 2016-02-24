@@ -46,7 +46,7 @@ public interface Message {
 
         public MessageBuilder headers(final Map<String, Object> headers) {
             if (headers != null)
-                this.headers.putAll(properties);
+                this.headers.putAll(headers);
             return this;
         }
 
