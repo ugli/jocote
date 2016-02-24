@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.junit.Test;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.JocoteUrl;
+import se.ugli.jocote.support.JocoteUrl;
 
 public class IbmMqDriverTest {
 

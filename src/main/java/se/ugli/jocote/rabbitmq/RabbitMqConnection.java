@@ -15,11 +15,11 @@ import com.rabbitmq.client.GetResponse;
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.support.DefaultConsumer;
+import se.ugli.jocote.support.JocoteUrl;
 
 public class RabbitMqConnection implements Connection {
 

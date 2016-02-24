@@ -5,7 +5,7 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import se.ugli.jocote.JocoteUrl;
+import se.ugli.jocote.support.JocoteUrl;
 
 public class IbmMqUrlTest {
 

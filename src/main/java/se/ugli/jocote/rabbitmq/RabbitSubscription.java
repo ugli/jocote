@@ -11,9 +11,9 @@ import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.ShutdownSignalException;
 
 import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.Subscription;
+import se.ugli.jocote.support.JocoteUrl;
 
 public class RabbitSubscription implements Subscription, com.rabbitmq.client.Consumer {
 

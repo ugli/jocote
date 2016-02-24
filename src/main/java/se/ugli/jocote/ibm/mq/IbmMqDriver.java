@@ -13,11 +13,11 @@ import com.ibm.mq.jms.MQQueue;
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Driver;
 import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.JocoteUrl;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.jms.JmsConnection;
 import se.ugli.jocote.jms.JmsSubscription;
+import se.ugli.jocote.support.JocoteUrl;
 
 public class IbmMqDriver implements Driver {
 

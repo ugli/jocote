@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+import se.ugli.jocote.support.JocoteUrl;
+
 public final class DriverManager {
 
     private static final Map<String, Driver> drivers = new ConcurrentHashMap<String, Driver>();

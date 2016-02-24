@@ -1,10 +1,12 @@
-package se.ugli.jocote;
+package se.ugli.jocote.support;
 
 import java.net.URI;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+
+import se.ugli.jocote.JocoteException;
 
 public class JocoteUrl {
 
