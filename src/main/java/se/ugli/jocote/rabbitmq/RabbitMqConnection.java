@@ -73,7 +73,7 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> get(final SessionConsumer<T> consumer) {
+    public <T> Optional<T> getWithSession(final SessionConsumer<T> consumer) {
         Channel newChannel = null;
         try {
             newChannel = connection.createChannel();
@@ -81,7 +81,7 @@ public class RabbitMqConnection implements Connection {
             final GetResponse basicGet = newChannel.basicGet(queue, false);
             if (basicGet != null) {
                 final RabbitSessionContext cxt = new RabbitSessionContext(newChannel, basicGet);
-                final Optional<T> result = consumer.receive(basicGet.getBody(), cxt);
+                final Optional<T> result = consumer.apply(cxt);
                 if (cxt.isClosable())
                     return result;
                 throw new JocoteException("You have to acknowledge or leave message");

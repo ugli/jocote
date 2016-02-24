@@ -13,7 +13,7 @@ public interface Connection extends AutoCloseable {
 
     <T> Optional<T> get(Function<Message, Optional<T>> msgFunc);
 
-    <T> Optional<T> get(SessionConsumer<T> consumer);
+    <T> Optional<T> getWithSession(SessionConsumer<T> consumer);
 
     Iterator<byte[]> iterator();
 

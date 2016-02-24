@@ -45,11 +45,11 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> get(final SessionConsumer<T> consumer) {
+    public <T> Optional<T> getWithSession(final SessionConsumer<T> consumer) {
         final RamMessage message = queue.poll();
         if (message != null) {
             final RamSessionMessageContext cxt = new RamSessionMessageContext(message, queue);
-            final Optional<T> result = consumer.receive(message.body, cxt);
+            final Optional<T> result = consumer.apply(cxt);
             if (cxt.isClosable())
                 return result;
             throw new JocoteException("You have to acknowledge or leave message");

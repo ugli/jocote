@@ -81,9 +81,9 @@ public class DriverTest {
     @Test
     public void shouldAcknowledgeMessage() {
         connection.put("hej".getBytes());
-        connection.get((msg, cxt) -> {
+        connection.getWithSession(cxt -> {
             cxt.acknowledgeMessage();
-            return Optional.of(msg);
+            return Optional.of(cxt.message());
         });
         assertThat(connection.get().isPresent(), equalTo(false));
     }
@@ -91,9 +91,9 @@ public class DriverTest {
     @Test
     public void shouldLeaveMessage() {
         connection.put("hej".getBytes());
-        connection.get((msg, cxt) -> {
+        connection.getWithSession(cxt -> {
             cxt.leaveMessage();
-            return Optional.of(msg);
+            return Optional.of(cxt.message());
         });
         assertThat(new String(connection.get().get()), equalTo("hej"));
     }
@@ -102,7 +102,7 @@ public class DriverTest {
     public void shouldThrowThenNotLeavingOrAcknowledgeMessage() {
         try {
             connection.put("hej".getBytes());
-            connection.get((msg, cxt) -> Optional.of(msg));
+            connection.getWithSession(cxt -> Optional.of(cxt.message()));
         }
         catch (final JocoteException e) {
             assertThat(e.getMessage(), equalTo("You have to acknowledge or leave message"));

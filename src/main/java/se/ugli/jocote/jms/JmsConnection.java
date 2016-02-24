@@ -71,7 +71,7 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> get(final SessionConsumer<T> consumer) {
+    public <T> Optional<T> getWithSession(final SessionConsumer<T> consumer) {
         Session session = null;
         MessageConsumer messageConsumer = null;
         try {
@@ -79,7 +79,7 @@ public class JmsConnection implements Connection {
             messageConsumer = session.createConsumer(destination);
             final Message message = messageConsumer.receive(receiveTimeout);
             final JmsSessionContext cxt = new JmsSessionContext(message);
-            final Optional<T> result = consumer.receive(MessageFactory.getBytes(message), cxt);
+            final Optional<T> result = consumer.apply(cxt);
             if (cxt.isClosable())
                 return result;
             throw new JocoteException("You have to acknowledge or leave message");
