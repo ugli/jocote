@@ -24,6 +24,8 @@ import se.ugli.jocote.support.JocoteUrl;
 
 public class JmsConnection implements Connection {
 
+    public static final String JMS_MESSAGE_TYPE = "jmsMessageType";
+
     private final javax.jms.Connection _connection;
     private final Destination destination;
     private final long receiveTimeout = 10;

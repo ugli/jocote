@@ -1,5 +1,7 @@
 package se.ugli.jocote.jms;
 
+import static se.ugli.jocote.jms.JmsConnection.JMS_MESSAGE_TYPE;
+
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,7 +86,16 @@ class MessageFactory {
             final String propertyName = propertyNames.nextElement();
             result.put(propertyName, message.getObjectProperty(propertyName));
         }
+        result.put(JMS_MESSAGE_TYPE, getJmsMessageType(message));
         return result;
+    }
+
+    private static Object getJmsMessageType(final javax.jms.Message message) {
+        if (message instanceof TextMessage)
+            return TextMessage.class.getName();
+        else if (message instanceof BytesMessage)
+            return BytesMessage.class.getName();
+        return null;
     }
 
 }
