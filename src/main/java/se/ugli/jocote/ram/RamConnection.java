@@ -14,6 +14,7 @@ import se.ugli.jocote.Connection;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
+import se.ugli.jocote.Message.MessageBuilder;
 import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.Subscription;
@@ -26,8 +27,6 @@ class RamConnection implements Connection {
 
     @Override
     public void close() {
-        if (subscribers.isEmpty())
-            queue.clear();
     }
 
     @Override
@@ -74,9 +73,17 @@ class RamConnection implements Connection {
     @Override
     public void put(final Message message) {
         if (subscribers.isEmpty())
-            queue.offer(message);
+            queue.offer(cloneWithId(message, UUID.randomUUID().toString()));
         else
             randomSubscriber().accept(message);
+    }
+
+    private Message cloneWithId(final Message msg, final String id) {
+        final MessageBuilder builder = new MessageBuilder();
+        builder.id(id).body(msg.body());
+        msg.headerNames().forEach(h -> builder.header(h, msg.header(h)));
+        msg.propertyNames().forEach(p -> builder.property(p, msg.property(p)));
+        return builder.build();
     }
 
     private Consumer<Message> randomSubscriber() {
