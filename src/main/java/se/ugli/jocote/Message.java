@@ -112,6 +112,11 @@ public interface Message {
             return body;
         }
 
+        @Override
+        public String toString() {
+            return "MessageImpl [id=" + id + ", headers=" + headers + ", properties=" + properties + ", body=" + new String(body) + "]";
+        }
+
     }
 
 }
