@@ -72,10 +72,11 @@ class RamConnection implements Connection {
 
     @Override
     public void put(final Message message) {
+        final Message cloneWithId = cloneWithId(message, UUID.randomUUID().toString());
         if (subscribers.isEmpty())
-            queue.offer(cloneWithId(message, UUID.randomUUID().toString()));
+            queue.offer(cloneWithId);
         else
-            randomSubscriber().accept(message);
+            randomSubscriber().accept(cloneWithId);
     }
 
     private Message cloneWithId(final Message msg, final String id) {
@@ -104,15 +105,14 @@ class RamConnection implements Connection {
     }
 
     Subscription addSubscription(final Consumer<Message> consumer) {
-        for (final Message message : queue)
-            consumer.accept(message);
         subscribers.add(consumer);
+        while (!queue.isEmpty())
+            randomSubscriber().accept(queue.poll());
         return new Subscription() {
 
             @Override
             public void close() {
                 subscribers.remove(consumer);
-                RamConnection.this.close();
             }
         };
     }
