@@ -56,34 +56,42 @@ class RabbitMqSessionIterator<T> implements SessionIterator<T> {
         catch (final TimeoutException | IOException e) {
             e.printStackTrace();
         }
-        if (!closable && lastMessage != null)
+        if (!closable)
             throw new JocoteException("You have to acknowledge or leave messages before closing");
     }
 
     @Override
     public void acknowledgeMessages() {
         try {
-            closable = true;
-            final long deliveryTag = lastMessage.getEnvelope().getDeliveryTag();
-            final boolean multiple = true;
-            channel.basicAck(deliveryTag, multiple);
+            if (lastMessage != null) {
+                final long deliveryTag = lastMessage.getEnvelope().getDeliveryTag();
+                final boolean multiple = true;
+                channel.basicAck(deliveryTag, multiple);
+            }
         }
         catch (final IOException e) {
             throw new JocoteException(e);
+        }
+        finally {
+            closable = true;
         }
     }
 
     @Override
     public void leaveMessages() {
         try {
-            final long deliveryTag = lastMessage.getEnvelope().getDeliveryTag();
-            final boolean multiple = true;
-            final boolean requeue = true;
-            channel.basicNack(deliveryTag, multiple, requeue);
-            closable = true;
+            if (lastMessage != null) {
+                final long deliveryTag = lastMessage.getEnvelope().getDeliveryTag();
+                final boolean multiple = true;
+                final boolean requeue = true;
+                channel.basicNack(deliveryTag, multiple, requeue);
+            }
         }
         catch (final IOException e) {
             throw new JocoteException(e);
+        }
+        finally {
+            closable = true;
         }
     }
 
