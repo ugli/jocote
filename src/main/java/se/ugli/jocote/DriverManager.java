@@ -4,10 +4,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import se.ugli.jocote.support.JocoteUrl;
 
 public final class DriverManager {
 
+    private final static Logger logger = LoggerFactory.getLogger(DriverManager.class);
     private static final Map<String, Driver> drivers = new ConcurrentHashMap<String, Driver>();
 
     static {
@@ -21,19 +25,10 @@ public final class DriverManager {
     private static void tryToRegister(final String driver) {
         try {
             register((Driver) Class.forName(driver).newInstance());
-            System.out.println("Driver " + driver + " registered.");
+            logger.info("Driver {} registered.", driver);
         }
-        catch (final InstantiationException e) {
-            System.err.println("Driver " + driver + " not registered: " + e.getMessage());
-        }
-        catch (final IllegalAccessException e) {
-            System.err.println("Driver " + driver + " not registered: " + e.getMessage());
-        }
-        catch (final ClassNotFoundException e) {
-            System.err.println("Driver " + driver + " not registered: " + e.getMessage());
-        }
-        catch (final RuntimeException e) {
-            System.err.println("Driver " + driver + " not registered: " + e.getMessage());
+        catch (final InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            logger.error("Driver {} not registered: {}", driver, e.getMessage());
         }
     }
 
