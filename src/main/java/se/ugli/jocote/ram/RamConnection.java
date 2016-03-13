@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Iterator;
@@ -17,8 +18,10 @@ import se.ugli.jocote.Message;
 import se.ugli.jocote.Message.MessageBuilder;
 import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.SessionStream;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.support.DefaultConsumer;
+import se.ugli.jocote.support.Streams;
 
 class RamConnection implements Connection {
 
@@ -63,6 +66,26 @@ class RamConnection implements Connection {
     @Override
     public <T> Iterator<T> iterator(final Function<Message, Optional<T>> msgFunc) {
         return new RamIterator<T>(queue, msgFunc);
+    }
+
+    @Override
+    public Stream<byte[]> stream() {
+        return Streams.stream(iterator());
+    }
+
+    @Override
+    public SessionStream sessionStream() {
+        return Streams.sessionStream(sessionIterator());
+    }
+
+    @Override
+    public SessionStream sessionStream(final int batchSize) {
+        return Streams.sessionStream(sessionIterator(), batchSize);
+    }
+
+    @Override
+    public Stream<byte[]> stream(final int batchSize) {
+        return Streams.stream(iterator(), batchSize);
     }
 
     @Override

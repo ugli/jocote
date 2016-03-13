@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
@@ -18,7 +19,9 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.SessionStream;
 import se.ugli.jocote.support.DefaultConsumer;
+import se.ugli.jocote.support.Streams;
 import se.ugli.jocote.support.JocoteUrl;
 
 public class RabbitMqConnection implements Connection {
@@ -118,6 +121,26 @@ public class RabbitMqConnection implements Connection {
     @Override
     public <T> Iterator<T> iterator(final Function<Message, Optional<T>> msgFunc) {
         return new RabbitMqIterator<T>(channel, queue, msgFunc);
+    }
+
+    @Override
+    public Stream<byte[]> stream() {
+        return Streams.stream(iterator());
+    }
+
+    @Override
+    public Stream<byte[]> stream(final int batchSize) {
+        return Streams.stream(iterator(), batchSize);
+    }
+
+    @Override
+    public SessionStream sessionStream() {
+        return Streams.sessionStream(sessionIterator());
+    }
+
+    @Override
+    public SessionStream sessionStream(final int batchSize) {
+        return Streams.sessionStream(sessionIterator(), batchSize);
     }
 
     @Override

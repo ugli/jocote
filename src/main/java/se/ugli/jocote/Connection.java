@@ -2,6 +2,7 @@ package se.ugli.jocote;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public interface Connection extends AutoCloseable {
 
@@ -18,7 +19,15 @@ public interface Connection extends AutoCloseable {
 
     <T> Iterator<T> iterator(Function<Message, Optional<T>> msgFunc);
 
+    Stream<byte[]> stream();
+
+    Stream<byte[]> stream(int batchSize);
+
     SessionIterator<byte[]> sessionIterator();
+
+    SessionStream sessionStream();
+
+    SessionStream sessionStream(int batchSize);
 
     <T> SessionIterator<T> sessionIterator(Function<Message, Optional<T>> msgFunc);
 

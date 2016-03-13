@@ -1,5 +1,6 @@
 package se.ugli.jocote;
 
+import static java.lang.Integer.parseInt;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -116,11 +117,19 @@ public class DriverTest {
             next = iterator.next();
             if (next.isPresent()) {
                 count++;
-                sum += Integer.parseInt(new String(next.get()));
+                sum += parseInt(new String(next.get()));
             }
         }
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(5050));
+        assertThat(connection.get().isPresent(), equalTo(false));
+    }
+
+    @Test
+    public void shouldConsumeStream() {
+        for (int i = 0; i <= 100; i++)
+            connection.put(String.valueOf(i).getBytes());
+        assertThat(connection.stream().mapToInt(b -> parseInt(new String(b))).sum(), equalTo(5050));
         assertThat(connection.get().isPresent(), equalTo(false));
     }
 
@@ -136,7 +145,7 @@ public class DriverTest {
             next = iterator.next();
             if (next.isPresent()) {
                 count++;
-                sum += Integer.parseInt(new String(next.get()));
+                sum += parseInt(new String(next.get()));
             }
         }
         iterator.acknowledgeMessages();
@@ -144,6 +153,16 @@ public class DriverTest {
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(5050));
         assertThat(connection.get().isPresent(), equalTo(false));
+    }
+
+    @Test
+    public void shouldAcknoledgeStream() {
+        for (int i = 0; i <= 100; i++)
+            connection.put(String.valueOf(i).getBytes());
+        try (SessionStream stream = connection.sessionStream()) {
+            assertThat(stream.mapToInt(b -> parseInt(new String(b))).sum(), equalTo(5050));
+            stream.acknowledgeMessages();
+        }
     }
 
     @Test
@@ -156,13 +175,24 @@ public class DriverTest {
         Optional<byte[]> next = iterator.next();
         while (next.isPresent()) {
             count++;
-            sum += Integer.parseInt(new String(next.get()));
+            sum += parseInt(new String(next.get()));
             next = iterator.next();
         }
         iterator.leaveMessages();
         iterator.close();
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(4950));
+        assertThat(new String(connection.get().get()), equalTo("0"));
+    }
+
+    @Test
+    public void shouldLeaveStream() {
+        for (int i = 0; i < 100; i++)
+            connection.put(String.valueOf(i).getBytes());
+        try (SessionStream stream = connection.sessionStream()) {
+            assertThat(stream.mapToInt(b -> parseInt(new String(b))).sum(), equalTo(4950));
+            stream.leaveMessages();
+        }
         assertThat(new String(connection.get().get()), equalTo("0"));
     }
 
@@ -178,13 +208,25 @@ public class DriverTest {
             next = iterator.next();
             if (next.isPresent()) {
                 count++;
-                sum += Integer.parseInt(new String(next.get()));
+                sum += parseInt(new String(next.get()));
             }
         }
         assertThat(count, equalTo(100));
         assertThat(sum, equalTo(5050));
         try {
             iterator.close();
+        }
+        catch (final JocoteException e) {
+            assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));
+        }
+    }
+
+    @Test
+    public void shouldThrowThenNotLeavingOrAcknowledgeMessageStream() {
+        for (int i = 0; i <= 100; i++)
+            connection.put(String.valueOf(i).getBytes());
+        try (SessionStream stream = connection.sessionStream()) {
+            assertThat(stream.mapToInt(b -> parseInt(new String(b))).sum(), equalTo(5050));
         }
         catch (final JocoteException e) {
             assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));
@@ -210,7 +252,7 @@ public class DriverTest {
         final Subscription subscription = DriverManager.subscribe(url, (msg) -> {
             final byte[] next = msg.body();
             count.i++;
-            sum.i += Integer.parseInt(new String(next));
+            sum.i += parseInt(new String(next));
         });
         Thread.sleep(10);
         subscription.close();
@@ -226,7 +268,7 @@ public class DriverTest {
         final Subscription subscription = DriverManager.subscribe(url, (msg) -> {
             final byte[] next = msg.body();
             count.i++;
-            sum.i += Integer.parseInt(new String(next));
+            sum.i += parseInt(new String(next));
         });
         for (int i = 0; i < 100; i++)
             connection.put(String.valueOf(i).getBytes());
