@@ -7,22 +7,23 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 
 import se.ugli.jocote.Iterator;
+import se.ugli.jocote.Message;
 
-class SpliteratorImpl implements Spliterator<byte[]> {
+class SpliteratorImpl implements Spliterator<Message> {
 
-    private final Iterator<byte[]> iterator;
+    private final Iterator<Message> iterator;
     private final int batchSize;
 
-    SpliteratorImpl(final Iterator<byte[]> iterator, final int batchSize) {
+    SpliteratorImpl(final Iterator<Message> iterator, final int batchSize) {
         this.iterator = iterator;
         this.batchSize = batchSize;
     }
 
     @Override
-    public boolean tryAdvance(final Consumer<? super byte[]> action) {
+    public boolean tryAdvance(final Consumer<? super Message> action) {
         if (action == null)
             throw new NullPointerException();
-        final Optional<byte[]> next = iterator.next();
+        final Optional<Message> next = iterator.next();
         if (next.isPresent()) {
             action.accept(next.get());
             return true;
@@ -31,10 +32,10 @@ class SpliteratorImpl implements Spliterator<byte[]> {
     }
 
     @Override
-    public Spliterator<byte[]> trySplit() {
-        final byte[][] array = new byte[batchSize][];
+    public Spliterator<Message> trySplit() {
+        final Message[] array = new Message[batchSize];
         int toIndex = 0;
-        Optional<byte[]> next = iterator.next();
+        Optional<Message> next = iterator.next();
         while (next.isPresent()) {
             array[toIndex++] = next.get();
             next = iterator.next();

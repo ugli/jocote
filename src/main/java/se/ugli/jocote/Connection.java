@@ -19,9 +19,9 @@ public interface Connection extends AutoCloseable {
 
     <T> Iterator<T> iterator(Function<Message, Optional<T>> msgFunc);
 
-    Stream<byte[]> stream();
+    Stream<Message> stream();
 
-    Stream<byte[]> stream(int batchSize);
+    Stream<Message> stream(int batchSize);
 
     SessionIterator<byte[]> sessionIterator();
 

@@ -21,6 +21,7 @@ import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.SessionStream;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.support.DefaultConsumer;
+import se.ugli.jocote.support.IdentityFunction;
 import se.ugli.jocote.support.Streams;
 
 class RamConnection implements Connection {
@@ -69,23 +70,23 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public Stream<byte[]> stream() {
-        return Streams.stream(iterator());
+    public Stream<Message> stream() {
+        return Streams.stream(iterator(new IdentityFunction()));
     }
 
     @Override
     public SessionStream sessionStream() {
-        return Streams.sessionStream(sessionIterator());
+        return Streams.sessionStream(sessionIterator(new IdentityFunction()));
     }
 
     @Override
     public SessionStream sessionStream(final int batchSize) {
-        return Streams.sessionStream(sessionIterator(), batchSize);
+        return Streams.sessionStream(sessionIterator(new IdentityFunction()), batchSize);
     }
 
     @Override
-    public Stream<byte[]> stream(final int batchSize) {
-        return Streams.stream(iterator(), batchSize);
+    public Stream<Message> stream(final int batchSize) {
+        return Streams.stream(iterator(new IdentityFunction()), batchSize);
     }
 
     @Override

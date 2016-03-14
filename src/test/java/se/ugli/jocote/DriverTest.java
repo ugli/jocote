@@ -129,7 +129,7 @@ public class DriverTest {
     public void shouldConsumeStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        assertThat(connection.stream().mapToInt(b -> parseInt(new String(b))).sum(), equalTo(5050));
+        assertThat(connection.stream().mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
         assertThat(connection.get().isPresent(), equalTo(false));
     }
 
@@ -160,7 +160,7 @@ public class DriverTest {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
         try (SessionStream stream = connection.sessionStream()) {
-            assertThat(stream.mapToInt(b -> parseInt(new String(b))).sum(), equalTo(5050));
+            assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
             stream.acknowledgeMessages();
         }
     }
@@ -190,7 +190,7 @@ public class DriverTest {
         for (int i = 0; i < 100; i++)
             connection.put(String.valueOf(i).getBytes());
         try (SessionStream stream = connection.sessionStream()) {
-            assertThat(stream.mapToInt(b -> parseInt(new String(b))).sum(), equalTo(4950));
+            assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(4950));
             stream.leaveMessages();
         }
         assertThat(new String(connection.get().get()), equalTo("0"));
@@ -226,7 +226,7 @@ public class DriverTest {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
         try (SessionStream stream = connection.sessionStream()) {
-            assertThat(stream.mapToInt(b -> parseInt(new String(b))).sum(), equalTo(5050));
+            assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
         }
         catch (final JocoteException e) {
             assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));

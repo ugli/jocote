@@ -22,8 +22,9 @@ import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.SessionStream;
 import se.ugli.jocote.support.DefaultConsumer;
-import se.ugli.jocote.support.Streams;
+import se.ugli.jocote.support.IdentityFunction;
 import se.ugli.jocote.support.JocoteUrl;
+import se.ugli.jocote.support.Streams;
 
 public class JmsConnection implements Connection {
 
@@ -105,37 +106,37 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> Iterator<T> iterator(final Function<se.ugli.jocote.Message, Optional<T>> msgFunc) {
+    public <T> Iterator<T> iterator(final Function<Message, Optional<T>> msgFunc) {
         return new JmsIterator<T>(jmsMessageConsumer(), receiveTimeout, msgFunc);
     }
 
     @Override
-    public Stream<byte[]> stream() {
-        return Streams.stream(iterator());
+    public Stream<Message> stream() {
+        return Streams.stream(iterator(new IdentityFunction()));
     }
 
     @Override
-    public Stream<byte[]> stream(final int batchSize) {
-        return Streams.stream(iterator(), batchSize);
+    public Stream<Message> stream(final int batchSize) {
+        return Streams.stream(iterator(new IdentityFunction()), batchSize);
     }
 
     @Override
     public SessionStream sessionStream() {
-        return Streams.sessionStream(sessionIterator());
+        return Streams.sessionStream(sessionIterator(new IdentityFunction()));
     }
 
     @Override
     public SessionStream sessionStream(final int batchSize) {
-        return Streams.sessionStream(sessionIterator(), batchSize);
+        return Streams.sessionStream(sessionIterator(new IdentityFunction()), batchSize);
     }
 
     @Override
     public void put(final byte[] message) {
-        put(se.ugli.jocote.Message.builder().body(message).build());
+        put(Message.builder().body(message).build());
     }
 
     @Override
-    public void put(final se.ugli.jocote.Message message) {
+    public void put(final Message message) {
         try {
             jmsMessageProducer().send(JmsMessageFactory.create(jmsSession(), message));
         }
@@ -150,7 +151,7 @@ public class JmsConnection implements Connection {
     }
 
     @Override
-    public <T> SessionIterator<T> sessionIterator(final Function<se.ugli.jocote.Message, Optional<T>> msgFunc) {
+    public <T> SessionIterator<T> sessionIterator(final Function<Message, Optional<T>> msgFunc) {
         return new JmsSessionIterator<T>(jmsConnection(), destination, receiveTimeout, msgFunc);
     }
 

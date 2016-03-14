@@ -62,12 +62,12 @@ public class LogConnection implements Connection {
     }
 
     @Override
-    public Stream<byte[]> stream() {
+    public Stream<Message> stream() {
         throw new UnsupportedOperationException("You can't stream log messages.");
     }
 
     @Override
-    public Stream<byte[]> stream(final int batchSize) {
+    public Stream<Message> stream(final int batchSize) {
         throw new UnsupportedOperationException("You can't stream log messages.");
     }
 
