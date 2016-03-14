@@ -15,24 +15,27 @@ public interface Connection extends AutoCloseable {
 
     <T> Optional<T> getWithSession(Function<SessionContext, Optional<T>> sessionFunc);
 
-    Iterator<byte[]> iterator();
-
-    <T> Iterator<T> iterator(Function<Message, Optional<T>> msgFunc);
-
     Stream<Message> stream();
 
     Stream<Message> stream(int batchSize);
-
-    SessionIterator<byte[]> sessionIterator();
 
     SessionStream sessionStream();
 
     SessionStream sessionStream(int batchSize);
 
-    <T> SessionIterator<T> sessionIterator(Function<Message, Optional<T>> msgFunc);
-
     void put(byte[] message);
 
     void put(Message message);
 
+    @Deprecated
+    Iterator<byte[]> iterator();
+
+    @Deprecated
+    <T> Iterator<T> iterator(Function<Message, Optional<T>> msgFunc);
+
+    @Deprecated
+    SessionIterator<byte[]> sessionIterator();
+
+    @Deprecated
+    <T> SessionIterator<T> sessionIterator(Function<Message, Optional<T>> msgFunc);
 }
