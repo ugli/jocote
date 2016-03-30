@@ -30,6 +30,10 @@ public class RabbitMqConnection implements Connection {
     private final com.rabbitmq.client.Connection connection;
     private final Channel channel;
     private String queue;
+    private boolean durable;
+    private boolean exclusive;
+    private boolean autoDelete;
+    private Map<String, Object> arguments;
 
     public RabbitMqConnection(final JocoteUrl url) {
         try {
@@ -43,7 +47,10 @@ public class RabbitMqConnection implements Connection {
             connection = factory.newConnection();
             channel = connection.createChannel();
             queue = url.queue;
-            channel.queueDeclare(queue, false, false, false, null); // TODO params
+            durable = true;
+            exclusive = false;
+            autoDelete = false;
+            channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
         catch (final TimeoutException | IOException e) {
             throw new JocoteException(e);
@@ -151,7 +158,7 @@ public class RabbitMqConnection implements Connection {
 
     @Override
     public <T> SessionIterator<T> sessionIterator(final Function<Message, Optional<T>> msgFunc) {
-        return new RabbitMqSessionIterator<T>(connection, queue, msgFunc);
+        return new RabbitMqSessionIterator<>(connection, msgFunc, queue, durable, exclusive, autoDelete, arguments);
     }
 
     @Override

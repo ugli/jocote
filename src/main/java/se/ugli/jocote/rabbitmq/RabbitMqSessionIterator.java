@@ -1,6 +1,7 @@
 package se.ugli.jocote.rabbitmq;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
@@ -21,12 +22,13 @@ class RabbitMqSessionIterator<T> implements SessionIterator<T> {
     private boolean closable;
     private GetResponse lastMessage;
 
-    RabbitMqSessionIterator(final Connection connection, final String queue, final Function<Message, Optional<T>> msgFunc) {
+    RabbitMqSessionIterator(final Connection connection, final Function<Message, Optional<T>> msgFunc, final String queue,
+            final boolean durable, final boolean exclusive, final boolean autoDelete, final Map<String, Object> arguments) {
         try {
             this.queue = queue;
             this.msgFunc = msgFunc;
             this.channel = connection.createChannel();
-            this.channel.queueDeclare(queue, false, false, false, null); // TODO params
+            this.channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
         catch (final IOException e) {
             throw new JocoteException(e);
