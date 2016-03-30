@@ -6,6 +6,9 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.GetResponse;
@@ -16,6 +19,7 @@ import se.ugli.jocote.SessionIterator;
 
 class RabbitMqSessionIterator<T> implements SessionIterator<T> {
 
+    private final static Logger logger = LoggerFactory.getLogger(RabbitMqSessionIterator.class);
     private final String queue;
     private final Function<Message, Optional<T>> msgFunc;
     private Channel channel;
@@ -55,8 +59,8 @@ class RabbitMqSessionIterator<T> implements SessionIterator<T> {
         try {
             channel.close();
         }
-        catch (final TimeoutException | IOException e) {
-            e.printStackTrace();
+        catch (final RuntimeException | TimeoutException | IOException e) {
+            logger.warn("Couldn't close channel: " + e.getMessage());
         }
         if (!closable)
             throw new JocoteException("You have to acknowledge or leave messages before closing");

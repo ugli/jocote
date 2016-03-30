@@ -26,7 +26,7 @@ import se.ugli.jocote.support.IdentityFunction;
 import se.ugli.jocote.support.JocoteUrl;
 import se.ugli.jocote.support.Streams;
 
-public class JmsConnection implements Connection {
+public class JmsConnection extends JmsBase implements Connection {
 
     public static final String JMS_MESSAGE_TYPE = "jmsMessageType";
 
@@ -51,10 +51,10 @@ public class JmsConnection implements Connection {
 
     @Override
     public void close() {
-        CloseUtil.close(_messageConsumer);
-        CloseUtil.close(_messageProducer);
-        CloseUtil.close(_session);
-        CloseUtil.close(_connection);
+        close(_messageConsumer);
+        close(_messageProducer);
+        close(_session);
+        close(_connection);
     }
 
     @Override
@@ -95,8 +95,8 @@ public class JmsConnection implements Connection {
             throw new JocoteException(e);
         }
         finally {
-            CloseUtil.close(messageConsumer);
-            CloseUtil.close(session);
+            close(messageConsumer);
+            close(session);
         }
     }
 

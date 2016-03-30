@@ -15,7 +15,7 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionIterator;
 
-class JmsSessionIterator<T> implements SessionIterator<T> {
+class JmsSessionIterator<T> extends JmsBase implements SessionIterator<T> {
 
     private final long receiveTimeout;
     private final Session session;
@@ -53,8 +53,8 @@ class JmsSessionIterator<T> implements SessionIterator<T> {
 
     @Override
     public void close() {
-        CloseUtil.close(jmsConsumer);
-        CloseUtil.close(session);
+        close(jmsConsumer);
+        close(session);
         if (!closable && lastMessage != null)
             throw new JocoteException("You have to acknowledge or leave messages before closing");
     }

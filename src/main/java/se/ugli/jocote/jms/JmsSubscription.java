@@ -16,7 +16,7 @@ import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.Subscription;
 
-public class JmsSubscription implements Subscription, MessageListener {
+public class JmsSubscription extends JmsBase implements Subscription, MessageListener {
 
     private final Connection connection;
     private final Consumer<Message> consumer;
@@ -40,9 +40,9 @@ public class JmsSubscription implements Subscription, MessageListener {
 
     @Override
     public void close() {
-        CloseUtil.close(messageConsumer);
-        CloseUtil.close(session);
-        CloseUtil.close(connection);
+        close(messageConsumer);
+        close(session);
+        close(connection);
     }
 
     @Override
