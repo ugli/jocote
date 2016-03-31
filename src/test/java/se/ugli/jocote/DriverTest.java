@@ -129,7 +129,7 @@ public class DriverTest {
     public void shouldConsumeStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        assertThat(connection.stream().mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
+        assertThat(connection.stream(200).mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
         assertThat(connection.get().isPresent(), equalTo(false));
     }
 
@@ -159,7 +159,7 @@ public class DriverTest {
     public void shouldAcknoledgeStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        try (SessionStream stream = connection.sessionStream()) {
+        try (SessionStream stream = connection.sessionStream(200)) {
             assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
             stream.acknowledgeMessages();
         }
@@ -225,7 +225,7 @@ public class DriverTest {
     public void shouldThrowThenNotLeavingOrAcknowledgeMessageStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        try (SessionStream stream = connection.sessionStream()) {
+        try (SessionStream stream = connection.sessionStream(200)) {
             assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
         }
         catch (final JocoteException e) {

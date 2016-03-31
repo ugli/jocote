@@ -100,7 +100,7 @@ public class RabbitMqConnection implements Connection {
         Channel newChannel = null;
         try {
             newChannel = connection.createChannel();
-            newChannel.queueDeclare(queue, false, false, false, null); // TODO params
+            newChannel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
             final GetResponse basicGet = newChannel.basicGet(queue, false);
             if (basicGet != null) {
                 final RabbitMqSessionContext cxt = new RabbitMqSessionContext(newChannel, basicGet);
@@ -115,13 +115,12 @@ public class RabbitMqConnection implements Connection {
             throw new JocoteException(e);
         }
         finally {
-            if (newChannel != null)
-                try {
-                    newChannel.close();
-                }
-                catch (IOException | TimeoutException e) {
-                    e.printStackTrace();
-                }
+            try {
+                newChannel.close();
+            }
+            catch (final RuntimeException | TimeoutException | IOException e) {
+                logger.warn("Couldn't close channel: " + e.getMessage());
+            }
         }
     }
 

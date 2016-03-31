@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConnectionFactory;
@@ -18,6 +21,7 @@ import se.ugli.jocote.support.JocoteUrl;
 
 class RabbitMqSubscription implements Subscription, com.rabbitmq.client.Consumer {
 
+    private final static Logger logger = LoggerFactory.getLogger(RabbitMqSubscription.class);
     private final com.rabbitmq.client.Connection connection;
     private final Channel channel;
     private final Consumer<Message> consumer;
@@ -46,14 +50,14 @@ class RabbitMqSubscription implements Subscription, com.rabbitmq.client.Consumer
         try {
             channel.close();
         }
-        catch (final TimeoutException | IOException e) {
-            e.printStackTrace();
+        catch (final RuntimeException | TimeoutException | IOException e) {
+            logger.warn("Couldn't close channel: " + e.getMessage());
         }
         try {
             connection.close();
         }
-        catch (final IOException e) {
-            e.printStackTrace();
+        catch (final RuntimeException | IOException e) {
+            logger.warn("Couldn't close connection: " + e.getMessage());
         }
     }
 
