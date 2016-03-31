@@ -13,6 +13,7 @@ class SpliteratorImpl implements Spliterator<Message> {
 
     private final Iterator<Message> iterator;
     private final int batchSize;
+    private int tryAdvanceCount = 0;
 
     SpliteratorImpl(final Iterator<Message> iterator, final int batchSize) {
         this.iterator = iterator;
@@ -23,10 +24,13 @@ class SpliteratorImpl implements Spliterator<Message> {
     public boolean tryAdvance(final Consumer<? super Message> action) {
         if (action == null)
             throw new NullPointerException();
-        final Optional<Message> next = iterator.next();
-        if (next.isPresent()) {
-            action.accept(next.get());
-            return true;
+        if (tryAdvanceCount < batchSize) {
+            final Optional<Message> next = iterator.next();
+            if (next.isPresent()) {
+                tryAdvanceCount++;
+                action.accept(next.get());
+                return true;
+            }
         }
         return false;
     }
@@ -47,7 +51,7 @@ class SpliteratorImpl implements Spliterator<Message> {
 
     @Override
     public long estimateSize() {
-        return Long.MAX_VALUE;
+        return batchSize - tryAdvanceCount;
     }
 
     @Override
