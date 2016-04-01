@@ -19,7 +19,7 @@ public class MessageFactoryTest {
         message.setText("asfsDFASDFASDFASD");
         message.setJMSMessageID("hej");
         final Message msg = MessageFactory.create(message);
-        assertThat((String) msg.header("MessageID"), equalTo("hej"));
+        assertThat(msg.headers().get("MessageID"), equalTo("hej"));
     }
 
 }

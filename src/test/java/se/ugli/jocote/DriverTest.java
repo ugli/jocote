@@ -3,6 +3,8 @@ package se.ugli.jocote;
 import static java.lang.Integer.parseInt;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,19 +16,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import se.ugli.jocote.rabbitmq.RabbitMqProperties;
+
 @RunWith(Parameterized.class)
 public class DriverTest {
 
     @SuppressWarnings("rawtypes")
     @Parameterized.Parameters(name = "{0}")
-    public static Collection primeNumbers() {
+    public static Collection testArray() {
         return Arrays.asList(new Object[][] { { "ActiveMQ", "activemq:/APA" }, { "RAM", "ram:/APA" }, { "RabbitMQ", "rabbitmq:/APA" } });
     }
 
     private Connection connection;
     private final String url;
+    private final String testName;
 
     public DriverTest(final String testName, final String url) {
+        this.testName = testName;
         this.url = url;
     }
 
@@ -55,21 +61,61 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldGetHeaderValue() {
+    public void shouldGetJmsHeaderValue() {
+        assumeFalse(testName.equals("RabbitMQ"));
         connection.put(Message.builder().body("hej".getBytes()).header("CorrelationID", "B").build());
         connection.get((msg) -> {
-            assertThat(msg.headerNames().contains("CorrelationID"), equalTo(true));
-            assertThat(msg.header("CorrelationID").toString(), equalTo("B"));
+            assertThat(msg.headers().get("CorrelationID"), equalTo("B"));
             return Optional.of(msg.body());
         });
     }
 
     @Test
-    public void shouldGetPropertyValue() {
+    public void shouldGetRabbitHeaderStringValue() {
+        assumeTrue(testName.equals("RabbitMQ"));
+        connection.put(Message.builder().body("hej".getBytes()).header("Hepp", "B").build());
+        connection.get((msg) -> {
+            assertThat(msg.headers().get("Hepp"), equalTo("B"));
+            return Optional.of(msg.body());
+        });
+    }
+
+    @Test
+    public void shouldGetRabbitHeaderIntValue() {
+        assumeTrue(testName.equals("RabbitMQ"));
+        connection.put(Message.builder().body("hej".getBytes()).header("Hepp", 7).build());
+        connection.get((msg) -> {
+            assertThat(msg.headers().get("Hepp"), equalTo(7));
+            return Optional.of(msg.body());
+        });
+    }
+
+    @Test
+    public void shouldGetJmsPropertyValue() {
+        assumeFalse(testName.equals("RabbitMQ"));
         connection.put(Message.builder().body("hej".getBytes()).property("environment", "TEST").build());
         connection.get((msg) -> {
-            assertThat(msg.propertyNames().contains("environment"), equalTo(true));
-            assertThat(msg.property("environment").toString(), equalTo("TEST"));
+            assertThat(msg.properties().get("environment"), equalTo("TEST"));
+            return Optional.of(msg.body());
+        });
+    }
+
+    @Test
+    public void shouldGetRabbitMqCorrelationId() {
+        assumeTrue(testName.equals("RabbitMQ"));
+        connection.put(Message.builder().body("hej".getBytes()).property(RabbitMqProperties.CorrelationId, "B").build());
+        connection.get((msg) -> {
+            assertThat(msg.properties().get(RabbitMqProperties.CorrelationId.name()), equalTo("B"));
+            return Optional.of(msg.body());
+        });
+    }
+
+    @Test
+    public void shouldGetRabbitMqDeliveryMode() {
+        assumeTrue(testName.equals("RabbitMQ"));
+        connection.put(Message.builder().body("hej".getBytes()).property(RabbitMqProperties.DeliveryMode, 2).build());
+        connection.get((msg) -> {
+            assertThat(msg.properties().get(RabbitMqProperties.DeliveryMode.name()), equalTo(2));
             return Optional.of(msg.body());
         });
     }

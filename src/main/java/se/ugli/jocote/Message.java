@@ -1,8 +1,9 @@
 package se.ugli.jocote;
 
+import static java.util.Collections.unmodifiableMap;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public interface Message {
 
@@ -10,13 +11,9 @@ public interface Message {
 
     String id();
 
-    Set<String> headerNames();
+    Map<String, Object> headers();
 
-    <T> T header(String headerName);
-
-    Set<String> propertyNames();
-
-    <T> T property(String propertyName);
+    Map<String, Object> properties();
 
     public static MessageBuilder builder() {
         return new MessageBuilder();
@@ -39,8 +36,8 @@ public interface Message {
             return this;
         }
 
-        public MessageBuilder header(final String name, final Object value) {
-            headers.put(name, value);
+        public MessageBuilder header(final Object name, final Object value) {
+            headers.put(name.toString(), value);
             return this;
         }
 
@@ -50,8 +47,8 @@ public interface Message {
             return this;
         }
 
-        public MessageBuilder property(final String name, final Object value) {
-            properties.put(name, value);
+        public MessageBuilder property(final Object name, final Object value) {
+            properties.put(name.toString(), value);
             return this;
         }
 
@@ -62,7 +59,7 @@ public interface Message {
         }
 
         public Message build() {
-            return new MessageImpl(id, body, headers, properties);
+            return new MessageImpl(id, body, unmodifiableMap(headers), unmodifiableMap(properties));
         }
     }
 
@@ -85,26 +82,14 @@ public interface Message {
             return id;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public <T> T header(final String headerName) {
-            return (T) headers.get(headerName);
+        public Map<String, Object> headers() {
+            return headers;
         }
 
         @Override
-        public Set<String> headerNames() {
-            return headers.keySet();
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T> T property(final String propertyName) {
-            return (T) properties.get(propertyName);
-        }
-
-        @Override
-        public Set<String> propertyNames() {
-            return properties.keySet();
+        public Map<String, Object> properties() {
+            return properties;
         }
 
         @Override

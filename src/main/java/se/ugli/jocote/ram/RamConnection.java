@@ -15,7 +15,6 @@ import se.ugli.jocote.Connection;
 import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.Message.MessageBuilder;
 import se.ugli.jocote.SessionContext;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.SessionStream;
@@ -104,11 +103,7 @@ class RamConnection implements Connection {
     }
 
     private Message cloneWithId(final Message msg, final String id) {
-        final MessageBuilder builder = new MessageBuilder();
-        builder.id(id).body(msg.body());
-        msg.headerNames().forEach(h -> builder.header(h, msg.header(h)));
-        msg.propertyNames().forEach(p -> builder.property(p, msg.property(p)));
-        return builder.build();
+        return Message.builder().id(id).body(msg.body()).headers(msg.headers()).properties(msg.properties()).build();
     }
 
     private Consumer<Message> randomSubscriber() {

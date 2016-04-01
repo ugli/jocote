@@ -27,8 +27,8 @@ class JmsMessageFactory {
 
     private static void addHeaders(final javax.jms.Message jmsMsg, final Message jocoteMsg)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        for (final String headerName : jocoteMsg.headerNames()) {
-            final Object headerValue = jocoteMsg.header(headerName);
+        for (final String headerName : jocoteMsg.headers().keySet()) {
+            final Object headerValue = jocoteMsg.headers().get(headerName);
             final String methodName = "setJMS" + headerName;
             final Class<?>[] parameterTypes = new Class[] { headerValue.getClass() };
             final Method method = jmsMsg.getClass().getMethod(methodName, parameterTypes);
@@ -37,8 +37,8 @@ class JmsMessageFactory {
     }
 
     private static void addProperties(final javax.jms.Message jmsMsg, final Message jocoteMsg) throws JMSException {
-        for (final String propertyName : jocoteMsg.propertyNames())
-            jmsMsg.setObjectProperty(propertyName, jocoteMsg.property(propertyName));
+        for (final String propertyName : jocoteMsg.properties().keySet())
+            jmsMsg.setObjectProperty(propertyName, jocoteMsg.properties().get(propertyName));
     }
 
 }

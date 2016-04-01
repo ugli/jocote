@@ -51,14 +51,42 @@ public class RabbitMqConnection implements Connection {
             connection = factory.newConnection();
             channel = connection.createChannel();
             queue = url.queue;
-            durable = true;
-            exclusive = false;
-            autoDelete = false;
+            durable = durable(url);
+            exclusive = exclusive(url);
+            autoDelete = autoDelete(url);
+            arguments = arguments(url);
             channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
         catch (final TimeoutException | IOException e) {
             throw new JocoteException(e);
         }
+    }
+
+    private Map<String, Object> arguments(final JocoteUrl url) {
+        final HashMap<String, Object> result = new HashMap<>(url.params);
+        result.remove("durable");
+        result.remove("exclusive");
+        result.remove("autoDelete");
+        return result;
+    }
+
+    private boolean autoDelete(final JocoteUrl url) {
+        return "true".equals(url.params.get("autoDelete"));
+    }
+
+    private boolean exclusive(final JocoteUrl url) {
+        return "true".equals(url.params.get("exclusive"));
+    }
+
+    private boolean durable(final JocoteUrl url) {
+        final String durable = url.params.get("durable");
+        if (durable != null)
+            return "true".equals(durable);
+        return true;
+    }
+
+    public Channel getChannel() {
+        return channel;
     }
 
     @Override
@@ -172,12 +200,8 @@ public class RabbitMqConnection implements Connection {
     @Override
     public void put(final Message message) {
         try {
-            final BasicProperties.Builder builder = new BasicProperties.Builder();
-            final Map<String, Object> newHeaders = new HashMap<>();
-            message.headerNames().forEach(name -> newHeaders.put(name, message.header(name)));
-            message.propertyNames().forEach(name -> newHeaders.put(name, message.property(name)));
-            builder.headers(newHeaders);
-            channel.basicPublish("", queue, builder.build(), message.body());
+            final BasicProperties props = new BasicPropertiesFactory(durable).create(message);
+            channel.basicPublish("", queue, props, message.body());
         }
         catch (final IOException e) {
             throw new JocoteException(e);
