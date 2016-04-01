@@ -9,6 +9,7 @@ import static org.junit.Assume.assumeTrue;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.After;
 import org.junit.Before;
@@ -207,6 +208,24 @@ public class DriverTest {
             connection.put(String.valueOf(i).getBytes());
         try (SessionStream stream = connection.sessionStream(200)) {
             assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
+            stream.acknowledgeMessages();
+        }
+    }
+
+    @Test
+    public void shouldLimitStream() {
+        for (int i = 0; i <= 100; i++)
+            connection.put(String.valueOf(i).getBytes());
+        final Stream<Message> stream = connection.stream(10);
+        assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
+    }
+
+    @Test
+    public void shouldLimitSessionStream() {
+        for (int i = 0; i <= 100; i++)
+            connection.put(String.valueOf(i).getBytes());
+        try (SessionStream stream = connection.sessionStream(10)) {
+            assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
             stream.acknowledgeMessages();
         }
     }
