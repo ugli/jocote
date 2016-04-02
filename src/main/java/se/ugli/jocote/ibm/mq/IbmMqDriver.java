@@ -26,12 +26,12 @@ public class IbmMqDriver implements Driver {
     private static final int TRANSPORT_TYPE_DEFAULT_VALUE = 1;
 
     @Override
-    public String getUrlScheme() {
+    public String urlScheme() {
         return URL_SCHEME;
     }
 
     @Override
-    public Connection getConnection(final JocoteUrl url) {
+    public Connection connect(final JocoteUrl url) {
         return new JmsConnection(connectionFactory(url), queue(url), url);
     }
 

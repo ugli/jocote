@@ -2,40 +2,35 @@ package se.ugli.jocote;
 
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Stream;
+
+import se.ugli.jocote.support.MessageIterator;
+import se.ugli.jocote.support.SessionIterator;
 
 public interface Connection extends AutoCloseable {
 
     @Override
     void close();
 
-    Optional<byte[]> get();
+    Optional<Message> get();
 
-    <T> Optional<T> get(Function<Message, Optional<T>> msgFunc);
+    <T> Optional<T> get(Function<Session, Optional<T>> consumer);
 
-    <T> Optional<T> getWithSession(Function<SessionContext, Optional<T>> sessionFunc);
+    MessageStream messageStream();
 
-    Stream<Message> stream();
-
-    Stream<Message> stream(int batchSize);
+    MessageStream messageStream(int limit);
 
     SessionStream sessionStream();
 
-    SessionStream sessionStream(int batchSize);
+    SessionStream sessionStream(int limit);
 
     void put(byte[] message);
 
     void put(Message message);
 
     @Deprecated
-    Iterator<byte[]> iterator();
+    MessageIterator iterator();
 
     @Deprecated
-    <T> Iterator<T> iterator(Function<Message, Optional<T>> msgFunc);
+    SessionIterator sessionIterator();
 
-    @Deprecated
-    SessionIterator<byte[]> sessionIterator();
-
-    @Deprecated
-    <T> SessionIterator<T> sessionIterator(Function<Message, Optional<T>> msgFunc);
 }

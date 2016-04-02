@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.GetResponse;
 import com.rabbitmq.client.LongString;
 
@@ -31,9 +32,12 @@ class MessageFactory {
 
     static Message create(final GetResponse response) {
         final BasicProperties props = response.getProps();
-        final Map<String, Object> headers = headers(props);
-        final Map<String, Object> properties = properties(props);
-        return builder().id(props.getMessageId()).body(response.getBody()).properties(properties).headers(headers).build();
+        final byte[] body = response.getBody();
+        return builder().id(props.getMessageId()).body(body).properties(properties(props)).headers(headers(props)).build();
+    }
+
+    static Message create(final String consumerTag, final Envelope envelope, final BasicProperties props, final byte[] body) {
+        return builder().id(props.getMessageId()).body(body).properties(properties(props)).headers(headers(props)).build();
     }
 
     private static Map<String, Object> headers(final BasicProperties props) {

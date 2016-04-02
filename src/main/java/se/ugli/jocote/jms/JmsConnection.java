@@ -5,25 +5,22 @@ import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
-import javax.jms.Session;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionContext;
-import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.MessageStream;
+import se.ugli.jocote.Session;
 import se.ugli.jocote.SessionStream;
-import se.ugli.jocote.support.DefaultConsumer;
-import se.ugli.jocote.support.IdentityFunction;
 import se.ugli.jocote.support.JocoteUrl;
+import se.ugli.jocote.support.MessageIterator;
+import se.ugli.jocote.support.SessionIterator;
 import se.ugli.jocote.support.Streams;
 
 public class JmsConnection extends JmsBase implements Connection {
@@ -36,7 +33,7 @@ public class JmsConnection extends JmsBase implements Connection {
 
     private MessageConsumer _messageConsumer;
     private MessageProducer _messageProducer;
-    private Session _session;
+    private javax.jms.Session _session;
 
     public JmsConnection(final ConnectionFactory connectionFactory, final Destination destination, final JocoteUrl url) {
         this.destination = destination;
@@ -58,16 +55,11 @@ public class JmsConnection extends JmsBase implements Connection {
     }
 
     @Override
-    public Optional<byte[]> get() {
-        return get(new DefaultConsumer());
-    }
-
-    @Override
-    public <T> Optional<T> get(final Function<Message, Optional<T>> msgFunc) {
+    public Optional<Message> get() {
         try {
             final javax.jms.Message message = jmsMessageConsumer().receive(receiveTimeout);
             if (message != null)
-                return msgFunc.apply(MessageFactory.create(message));
+                return Optional.of(MessageFactory.create(message));
             return Optional.empty();
         }
         catch (final JMSException e) {
@@ -76,8 +68,8 @@ public class JmsConnection extends JmsBase implements Connection {
     }
 
     @Override
-    public <T> Optional<T> getWithSession(final Function<SessionContext, Optional<T>> sessionFunc) {
-        Session session = null;
+    public <T> Optional<T> get(final Function<Session, Optional<T>> sessionFunc) {
+        javax.jms.Session session = null;
         MessageConsumer messageConsumer = null;
         try {
             session = jmsConnection().createSession(false, CLIENT_ACKNOWLEDGE.mode);
@@ -85,7 +77,7 @@ public class JmsConnection extends JmsBase implements Connection {
             final javax.jms.Message message = messageConsumer.receive(receiveTimeout);
             if (message == null)
                 return Optional.empty();
-            final JmsSessionContext cxt = new JmsSessionContext(message);
+            final JmsSession cxt = new JmsSession(message);
             final Optional<T> result = sessionFunc.apply(cxt);
             if (cxt.isClosable())
                 return result;
@@ -101,33 +93,28 @@ public class JmsConnection extends JmsBase implements Connection {
     }
 
     @Override
-    public Iterator<byte[]> iterator() {
-        return iterator(new DefaultConsumer());
+    public MessageIterator iterator() {
+        return new JmsIterator(jmsMessageConsumer(), receiveTimeout);
     }
 
     @Override
-    public <T> Iterator<T> iterator(final Function<Message, Optional<T>> msgFunc) {
-        return new JmsIterator<T>(jmsMessageConsumer(), receiveTimeout, msgFunc);
+    public MessageStream messageStream() {
+        return Streams.messageStream(iterator());
     }
 
     @Override
-    public Stream<Message> stream() {
-        return Streams.stream(iterator(new IdentityFunction()));
-    }
-
-    @Override
-    public Stream<Message> stream(final int batchSize) {
-        return Streams.stream(iterator(new IdentityFunction()), batchSize);
+    public MessageStream messageStream(final int batchSize) {
+        return Streams.messageStream(iterator(), batchSize);
     }
 
     @Override
     public SessionStream sessionStream() {
-        return Streams.sessionStream(sessionIterator(new IdentityFunction()));
+        return Streams.sessionStream(sessionIterator());
     }
 
     @Override
     public SessionStream sessionStream(final int batchSize) {
-        return Streams.sessionStream(sessionIterator(new IdentityFunction()), batchSize);
+        return Streams.sessionStream(sessionIterator(), batchSize);
     }
 
     @Override
@@ -146,13 +133,8 @@ public class JmsConnection extends JmsBase implements Connection {
     }
 
     @Override
-    public SessionIterator<byte[]> sessionIterator() {
-        return sessionIterator(new DefaultConsumer());
-    }
-
-    @Override
-    public <T> SessionIterator<T> sessionIterator(final Function<Message, Optional<T>> msgFunc) {
-        return new JmsSessionIterator<T>(jmsConnection(), destination, receiveTimeout, msgFunc);
+    public SessionIterator sessionIterator() {
+        return new JmsSessionIterator(jmsConnection(), destination, receiveTimeout);
     }
 
     public MessageConsumer jmsMessageConsumer() {
@@ -177,7 +159,7 @@ public class JmsConnection extends JmsBase implements Connection {
         }
     }
 
-    public Session jmsSession() {
+    public javax.jms.Session jmsSession() {
         try {
             if (_session == null)
                 _session = jmsConnection().createSession(false, AUTO_ACKNOWLEDGE.mode);

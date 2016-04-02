@@ -6,10 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
@@ -17,20 +13,18 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionContext;
-import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.MessageStream;
+import se.ugli.jocote.Session;
 import se.ugli.jocote.SessionStream;
-import se.ugli.jocote.support.DefaultConsumer;
-import se.ugli.jocote.support.IdentityFunction;
 import se.ugli.jocote.support.JocoteUrl;
+import se.ugli.jocote.support.MessageIterator;
+import se.ugli.jocote.support.SessionIterator;
 import se.ugli.jocote.support.Streams;
 
-public class RabbitMqConnection implements Connection {
+public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
-    private final static Logger logger = LoggerFactory.getLogger(RabbitMqConnection.class);
     private final com.rabbitmq.client.Connection connection;
     private final Channel channel;
     private String queue;
@@ -91,31 +85,16 @@ public class RabbitMqConnection implements Connection {
 
     @Override
     public void close() {
-        try {
-            channel.close();
-        }
-        catch (final RuntimeException | TimeoutException | IOException e) {
-            logger.warn("Couldn't close channel: " + e.getMessage());
-        }
-        try {
-            connection.close();
-        }
-        catch (final RuntimeException | IOException e) {
-            logger.warn("Couldn't close connection: " + e.getMessage());
-        }
+        close(channel);
+        close(connection);
     }
 
     @Override
-    public Optional<byte[]> get() {
-        return get(new DefaultConsumer());
-    }
-
-    @Override
-    public <T> Optional<T> get(final Function<Message, Optional<T>> msgFunc) {
+    public Optional<Message> get() {
         try {
             final GetResponse basicGet = channel.basicGet(queue, true);
             if (basicGet != null)
-                return msgFunc.apply(MessageFactory.create(basicGet));
+                return Optional.of(MessageFactory.create(basicGet));
             return Optional.empty();
         }
         catch (final IOException e) {
@@ -124,14 +103,14 @@ public class RabbitMqConnection implements Connection {
     }
 
     @Override
-    public <T> Optional<T> getWithSession(final Function<SessionContext, Optional<T>> sessionFunc) {
+    public <T> Optional<T> get(final Function<Session, Optional<T>> sessionFunc) {
         Channel newChannel = null;
         try {
             newChannel = connection.createChannel();
             newChannel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
             final GetResponse basicGet = newChannel.basicGet(queue, false);
             if (basicGet != null) {
-                final RabbitMqSessionContext cxt = new RabbitMqSessionContext(newChannel, basicGet);
+                final RabbitMqSession cxt = new RabbitMqSession(newChannel, basicGet);
                 final Optional<T> result = sessionFunc.apply(cxt);
                 if (cxt.isClosable())
                     return result;
@@ -143,53 +122,38 @@ public class RabbitMqConnection implements Connection {
             throw new JocoteException(e);
         }
         finally {
-            try {
-                newChannel.close();
-            }
-            catch (final RuntimeException | TimeoutException | IOException e) {
-                logger.warn("Couldn't close channel: " + e.getMessage());
-            }
+            close(newChannel);
         }
     }
 
     @Override
-    public Iterator<byte[]> iterator() {
-        return iterator(new DefaultConsumer());
+    public MessageIterator iterator() {
+        return new RabbitMqIterator(channel, queue);
     }
 
     @Override
-    public <T> Iterator<T> iterator(final Function<Message, Optional<T>> msgFunc) {
-        return new RabbitMqIterator<T>(channel, queue, msgFunc);
+    public MessageStream messageStream() {
+        return Streams.messageStream(iterator());
     }
 
     @Override
-    public Stream<Message> stream() {
-        return Streams.stream(iterator(new IdentityFunction()));
-    }
-
-    @Override
-    public Stream<Message> stream(final int batchSize) {
-        return Streams.stream(iterator(new IdentityFunction()), batchSize);
+    public MessageStream messageStream(final int batchSize) {
+        return Streams.messageStream(iterator(), batchSize);
     }
 
     @Override
     public SessionStream sessionStream() {
-        return Streams.sessionStream(sessionIterator(new IdentityFunction()));
+        return Streams.sessionStream(sessionIterator());
     }
 
     @Override
     public SessionStream sessionStream(final int batchSize) {
-        return Streams.sessionStream(sessionIterator(new IdentityFunction()), batchSize);
+        return Streams.sessionStream(sessionIterator(), batchSize);
     }
 
     @Override
-    public SessionIterator<byte[]> sessionIterator() {
-        return sessionIterator(new DefaultConsumer());
-    }
-
-    @Override
-    public <T> SessionIterator<T> sessionIterator(final Function<Message, Optional<T>> msgFunc) {
-        return new RabbitMqSessionIterator<>(connection, msgFunc, queue, durable, exclusive, autoDelete, arguments);
+    public SessionIterator sessionIterator() {
+        return new RabbitMqSessionIterator(connection, queue, durable, exclusive, autoDelete, arguments);
     }
 
     @Override

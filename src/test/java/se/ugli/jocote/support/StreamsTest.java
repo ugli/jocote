@@ -10,7 +10,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.junit.Test;
 
-import se.ugli.jocote.Iterator;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.Message.MessageBuilder;
 
@@ -20,19 +19,28 @@ public class StreamsTest {
     public void shouldLimitStream() {
         final int batchSize = 4;
 
-        final Iterator<Message> iterator = new Iterator<Message>() {
+        final MessageIterator iterator = new MessageIterator() {
 
             private final Queue<Message> queue = new LinkedBlockingQueue<>(
                     Arrays.asList(new MessageBuilder().build(), new MessageBuilder().build(), new MessageBuilder().build(),
                             new MessageBuilder().build(), new MessageBuilder().build(), new MessageBuilder().build(),
                             new MessageBuilder().build(), new MessageBuilder().build(), new MessageBuilder().build()));
+            private int consumed;
 
             @Override
             public Optional<Message> next() {
-                return Optional.ofNullable(queue.poll());
+                final Optional<Message> result = Optional.ofNullable(queue.poll());
+                if (result.isPresent())
+                    consumed++;
+                return result;
+            }
+
+            @Override
+            public int index() {
+                return consumed;
             }
         };
-        final long count = Streams.stream(iterator, batchSize).count();
+        final long count = Streams.messageStream(iterator, batchSize).count();
         assertThat((int) count, is(batchSize));
     }
 

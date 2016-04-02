@@ -4,15 +4,15 @@ import javax.jms.JMSException;
 
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionContext;
+import se.ugli.jocote.Session;
 
-class JmsSessionContext implements SessionContext {
+class JmsSession implements Session {
 
     private boolean closable;
     private final javax.jms.Message jmsMessage;
     private final Message jocoteMessage;
 
-    JmsSessionContext(final javax.jms.Message jmsMessage) {
+    JmsSession(final javax.jms.Message jmsMessage) {
         this.jmsMessage = jmsMessage;
         this.jocoteMessage = MessageFactory.create(jmsMessage);
     }
@@ -23,7 +23,7 @@ class JmsSessionContext implements SessionContext {
     }
 
     @Override
-    public void acknowledgeMessage() {
+    public void ack() {
         closable = true;
         try {
             jmsMessage.acknowledge();
@@ -34,7 +34,7 @@ class JmsSessionContext implements SessionContext {
     }
 
     @Override
-    public void leaveMessage() {
+    public void nack() {
         closable = true;
     }
 

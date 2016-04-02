@@ -6,9 +6,9 @@ import se.ugli.jocote.support.JocoteUrl;
 
 public interface Driver {
 
-    String getUrlScheme();
+    String urlScheme();
 
-    Connection getConnection(JocoteUrl url);
+    Connection connect(JocoteUrl url);
 
     Subscription subscribe(JocoteUrl url, Consumer<Message> consumer);
 

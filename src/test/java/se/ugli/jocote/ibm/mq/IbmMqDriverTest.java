@@ -16,7 +16,7 @@ public class IbmMqDriverTest {
     @Test
     public void test() throws IOException {
         final IbmMqDriver driver = new IbmMqDriver();
-        final Connection connection = driver.getConnection(JocoteUrl.apply("ibmmq:///I05.DTST.PUBLISH.EVENT.BQ?hostName=mvsprod"));
+        final Connection connection = driver.connect(JocoteUrl.apply("ibmmq:///I05.DTST.PUBLISH.EVENT.BQ?hostName=mvsprod"));
         final Object object = connection.get();
         logger.info("{}", object);
         connection.close();

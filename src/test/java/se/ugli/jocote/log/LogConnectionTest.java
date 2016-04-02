@@ -6,21 +6,22 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+import se.ugli.jocote.Connection;
+import se.ugli.jocote.DriverManager;
 import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.support.JocoteUrl;
 
 public class LogConnectionTest {
 
     @Test
     public void shouldConnect() {
-        try (LogConnection connection = new LogConnection(JocoteUrl.apply("log:///INFO"))) {
+        try (Connection connection = DriverManager.connect("log:///INFO")) {
             connection.put("hej".getBytes());
         }
     }
 
     @Test
     public void shouldThrow() {
-        try (LogConnection connection = new LogConnection(JocoteUrl.apply("log:///APA"))) {
+        try (Connection connection = DriverManager.connect("log:///APA")) {
             fail();
         }
         catch (final JocoteException e) {

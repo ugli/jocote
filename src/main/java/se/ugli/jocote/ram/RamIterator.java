@@ -2,27 +2,32 @@ package se.ugli.jocote.ram;
 
 import java.util.Optional;
 import java.util.Queue;
-import java.util.function.Function;
 
-import se.ugli.jocote.Iterator;
 import se.ugli.jocote.Message;
+import se.ugli.jocote.support.MessageIterator;
 
-public class RamIterator<T> implements Iterator<T> {
+public class RamIterator implements MessageIterator {
 
     private final Queue<Message> connectionQueue;
-    private final Function<Message, Optional<T>> msgFunc;
+    private int index = 0;
 
-    public RamIterator(final Queue<Message> connectionQueue, final Function<Message, Optional<T>> msgFunc) {
+    public RamIterator(final Queue<Message> connectionQueue) {
         this.connectionQueue = connectionQueue;
-        this.msgFunc = msgFunc;
     }
 
     @Override
-    public Optional<T> next() {
+    public Optional<Message> next() {
         final Message message = connectionQueue.poll();
-        if (message != null)
-            return msgFunc.apply(message);
+        if (message != null) {
+            index++;
+            return Optional.of(message);
+        }
         return Optional.empty();
+    }
+
+    @Override
+    public int index() {
+        return index;
     }
 
 }

@@ -20,26 +20,26 @@ public final class DriverManager {
         tryToRegister("se.ugli.jocote.jndi.JndiDriver");
         tryToRegister("se.ugli.jocote.ram.RamDriver");
         tryToRegister("se.ugli.jocote.rabbitmq.RabbitMqDriver");
-        tryToRegister("se.ugli.jocote.log.LogConnection");
+        tryToRegister("se.ugli.jocote.log.LogDriver");
     }
 
     private static void tryToRegister(final String driver) {
         try {
-            register((Driver) Class.forName(driver).newInstance());
+            register(driver);
             logger.info("Driver {} registered.", driver);
         }
-        catch (final InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+        catch (final JocoteException e) {
             logger.error("Driver {} not registered: {}", driver, e.getMessage());
         }
     }
 
-    public static Connection getConnection(final String urlStr) {
-        final JocoteUrl url = JocoteUrl.apply(urlStr);
-        return getDriver(url).getConnection(url);
+    public static Connection connect(final String url) {
+        final JocoteUrl urlObj = JocoteUrl.apply(url);
+        return driver(urlObj).connect(urlObj);
     }
 
     public static void register(final Driver driver) {
-        final String urlScheme = driver.getUrlScheme();
+        final String urlScheme = driver.urlScheme();
         if (urlScheme == null)
             throw new JocoteException("Driver must define url scheme");
         drivers.put(urlScheme, driver);
@@ -49,23 +49,17 @@ public final class DriverManager {
         try {
             register((Driver) Class.forName(driver).newInstance());
         }
-        catch (final InstantiationException e) {
-            throw new JocoteException(e);
-        }
-        catch (final IllegalAccessException e) {
-            throw new JocoteException(e);
-        }
-        catch (final ClassNotFoundException e) {
+        catch (final InstantiationException | IllegalAccessException | ClassNotFoundException e) {
             throw new JocoteException(e);
         }
     }
 
-    public static Subscription subscribe(final String urlStr, final Consumer<Message> consumer) {
-        final JocoteUrl url = JocoteUrl.apply(urlStr);
-        return getDriver(url).subscribe(url, consumer);
+    public static Subscription subscribe(final String url, final Consumer<Message> consumer) {
+        final JocoteUrl urlObj = JocoteUrl.apply(url);
+        return driver(urlObj).subscribe(urlObj, consumer);
     }
 
-    private static Driver getDriver(final JocoteUrl url) {
+    private static Driver driver(final JocoteUrl url) {
         final Driver result = drivers.get(url.scheme);
         if (result == null)
             throw new JocoteException("No suitable driver for url: " + url);

@@ -8,16 +8,16 @@ import com.rabbitmq.client.GetResponse;
 
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionContext;
+import se.ugli.jocote.Session;
 
-class RabbitMqSessionContext implements SessionContext {
+class RabbitMqSession implements Session {
 
     private boolean closable;
     private final Channel channel;
     private final Envelope envelope;
     private final Message message;
 
-    RabbitMqSessionContext(final Channel channel, final GetResponse response) {
+    RabbitMqSession(final Channel channel, final GetResponse response) {
         this.channel = channel;
         envelope = response.getEnvelope();
         message = MessageFactory.create(response);
@@ -29,7 +29,7 @@ class RabbitMqSessionContext implements SessionContext {
     }
 
     @Override
-    public void acknowledgeMessage() {
+    public void ack() {
         try {
             closable = true;
             final long deliveryTag = envelope.getDeliveryTag();
@@ -42,7 +42,7 @@ class RabbitMqSessionContext implements SessionContext {
     }
 
     @Override
-    public void leaveMessage() {
+    public void nack() {
         try {
             final long deliveryTag = envelope.getDeliveryTag();
             final boolean multiple = false;

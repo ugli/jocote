@@ -6,16 +6,14 @@ import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-import se.ugli.jocote.Iterator;
 import se.ugli.jocote.Message;
 
 class SpliteratorImpl implements Spliterator<Message> {
 
-    private final Iterator<Message> iterator;
+    private final MessageIterator iterator;
     private final int batchSize;
-    private int tryAdvanceCount = 0;
 
-    SpliteratorImpl(final Iterator<Message> iterator, final int batchSize) {
+    SpliteratorImpl(final MessageIterator iterator, final int batchSize) {
         this.iterator = iterator;
         this.batchSize = batchSize;
     }
@@ -24,10 +22,9 @@ class SpliteratorImpl implements Spliterator<Message> {
     public boolean tryAdvance(final Consumer<? super Message> action) {
         if (action == null)
             throw new NullPointerException();
-        if (tryAdvanceCount < batchSize) {
+        if (iterator.index() < batchSize) {
             final Optional<Message> next = iterator.next();
             if (next.isPresent()) {
-                tryAdvanceCount++;
                 action.accept(next.get());
                 return true;
             }
@@ -51,7 +48,7 @@ class SpliteratorImpl implements Spliterator<Message> {
 
     @Override
     public long estimateSize() {
-        return batchSize - tryAdvanceCount;
+        return batchSize - iterator.index();
     }
 
     @Override

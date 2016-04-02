@@ -1,38 +1,43 @@
 package se.ugli.jocote.jms;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 
-import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
+import se.ugli.jocote.support.MessageIterator;
 
-class JmsIterator<T> implements Iterator<T> {
+class JmsIterator implements MessageIterator {
 
     private final MessageConsumer jmsConsumer;
-    private final Function<se.ugli.jocote.Message, Optional<T>> msgFunc;
     private final long receiveTimeout;
+    private int index = 0;
 
-    JmsIterator(final MessageConsumer jmsConsumer, final long receiveTimeout, final Function<Message, Optional<T>> msgFunc) {
+    JmsIterator(final MessageConsumer jmsConsumer, final long receiveTimeout) {
         this.receiveTimeout = receiveTimeout;
-        this.msgFunc = msgFunc;
         this.jmsConsumer = jmsConsumer;
     }
 
     @Override
-    public Optional<T> next() {
+    public Optional<Message> next() {
         try {
             final javax.jms.Message message = jmsConsumer.receive(receiveTimeout);
-            if (message != null)
-                return msgFunc.apply(MessageFactory.create(message));
+            if (message != null) {
+                index++;
+                return Optional.of(MessageFactory.create(message));
+            }
             return Optional.empty();
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
         }
+    }
+
+    @Override
+    public int index() {
+        return index;
     }
 
 }

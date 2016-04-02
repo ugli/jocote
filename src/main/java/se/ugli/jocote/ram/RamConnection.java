@@ -9,18 +9,16 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.Iterator;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionContext;
-import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.MessageStream;
+import se.ugli.jocote.Session;
 import se.ugli.jocote.SessionStream;
 import se.ugli.jocote.Subscription;
-import se.ugli.jocote.support.DefaultConsumer;
-import se.ugli.jocote.support.IdentityFunction;
+import se.ugli.jocote.support.MessageIterator;
+import se.ugli.jocote.support.SessionIterator;
 import se.ugli.jocote.support.Streams;
 
 class RamConnection implements Connection {
@@ -33,23 +31,15 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public Optional<byte[]> get() {
-        return get(new DefaultConsumer());
+    public Optional<Message> get() {
+        return Optional.ofNullable(queue.poll());
     }
 
     @Override
-    public <T> Optional<T> get(final Function<Message, Optional<T>> msgFunc) {
-        final Message message = queue.poll();
-        if (message != null)
-            return msgFunc.apply(message);
-        return Optional.empty();
-    }
-
-    @Override
-    public <T> Optional<T> getWithSession(final Function<SessionContext, Optional<T>> sessionFunc) {
+    public <T> Optional<T> get(final Function<Session, Optional<T>> sessionFunc) {
         final Message message = queue.poll();
         if (message != null) {
-            final RamSessionMessageContext cxt = new RamSessionMessageContext(message, queue);
+            final RamSession cxt = new RamSession(message, queue);
             final Optional<T> result = sessionFunc.apply(cxt);
             if (cxt.isClosable())
                 return result;
@@ -59,33 +49,28 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public Iterator<byte[]> iterator() {
-        return iterator(new DefaultConsumer());
+    public MessageIterator iterator() {
+        return new RamIterator(queue);
     }
 
     @Override
-    public <T> Iterator<T> iterator(final Function<Message, Optional<T>> msgFunc) {
-        return new RamIterator<T>(queue, msgFunc);
-    }
-
-    @Override
-    public Stream<Message> stream() {
-        return Streams.stream(iterator(new IdentityFunction()));
+    public MessageStream messageStream() {
+        return Streams.messageStream(iterator());
     }
 
     @Override
     public SessionStream sessionStream() {
-        return Streams.sessionStream(sessionIterator(new IdentityFunction()));
+        return Streams.sessionStream(sessionIterator());
     }
 
     @Override
     public SessionStream sessionStream(final int batchSize) {
-        return Streams.sessionStream(sessionIterator(new IdentityFunction()), batchSize);
+        return Streams.sessionStream(sessionIterator(), batchSize);
     }
 
     @Override
-    public Stream<Message> stream(final int batchSize) {
-        return Streams.stream(iterator(new IdentityFunction()), batchSize);
+    public MessageStream messageStream(final int batchSize) {
+        return Streams.messageStream(iterator(), batchSize);
     }
 
     @Override
@@ -114,13 +99,8 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public SessionIterator<byte[]> sessionIterator() {
-        return sessionIterator(new DefaultConsumer());
-    }
-
-    @Override
-    public <T> SessionIterator<T> sessionIterator(final Function<Message, Optional<T>> msgFunc) {
-        return new RamSessionIterator<T>(queue, msgFunc);
+    public SessionIterator sessionIterator() {
+        return new RamSessionIterator(queue);
     }
 
     Subscription addSubscription(final Consumer<Message> consumer) {

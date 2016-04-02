@@ -16,21 +16,21 @@ public class RamDriver implements Driver {
     private static final String URL_SCHEME = "ram";
 
     @Override
-    public String getUrlScheme() {
+    public String urlScheme() {
         return URL_SCHEME;
     }
 
     @Override
-    public Connection getConnection(final JocoteUrl url) {
-        return connection(url);
+    public Connection connect(final JocoteUrl url) {
+        return _connection(url);
     }
 
     @Override
     public Subscription subscribe(final JocoteUrl url, final Consumer<Message> consumer) {
-        return connection(url).addSubscription(consumer);
+        return _connection(url).addSubscription(consumer);
     }
 
-    private RamConnection connection(final JocoteUrl url) {
+    private RamConnection _connection(final JocoteUrl url) {
         RamConnection connection = connections.get(url.queue);
         if (connection == null) {
             connection = new RamConnection();

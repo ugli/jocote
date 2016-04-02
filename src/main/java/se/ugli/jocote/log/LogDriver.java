@@ -13,12 +13,12 @@ public class LogDriver implements Driver {
     public static final String URL_SCHEME = "log";
 
     @Override
-    public String getUrlScheme() {
+    public String urlScheme() {
         return URL_SCHEME;
     }
 
     @Override
-    public Connection getConnection(final JocoteUrl url) {
+    public Connection connect(final JocoteUrl url) {
         return new LogConnection(url);
     }
 

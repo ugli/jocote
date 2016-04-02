@@ -3,36 +3,35 @@ package se.ugli.jocote.ram;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.function.Function;
 
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.support.SessionIterator;
 
-public class RamSessionIterator<T> implements SessionIterator<T> {
+public class RamSessionIterator implements SessionIterator {
 
     private Queue<Message> backoutQueue = new ConcurrentLinkedQueue<>();
     private boolean closable;
     private final Queue<Message> connectionQueue;
-    private final Function<Message, Optional<T>> msgFunc;
+    private int index = 0;
 
-    public RamSessionIterator(final Queue<Message> connectionQueue, final Function<Message, Optional<T>> msgFunc) {
+    public RamSessionIterator(final Queue<Message> connectionQueue) {
         this.connectionQueue = connectionQueue;
-        this.msgFunc = msgFunc;
     }
 
     @Override
-    public Optional<T> next() {
+    public Optional<Message> next() {
         final Message message = connectionQueue.poll();
         if (message != null) {
             backoutQueue.offer(message);
-            return msgFunc.apply(message);
+            index++;
+            return Optional.of(message);
         }
         return Optional.empty();
     }
 
     @Override
-    public void acknowledgeMessages() {
+    public void ack() {
         closable = true;
     }
 
@@ -44,10 +43,15 @@ public class RamSessionIterator<T> implements SessionIterator<T> {
     }
 
     @Override
-    public void leaveMessages() {
+    public void nack() {
         for (final Message message : backoutQueue)
             connectionQueue.offer(message);
         closable = true;
+    }
+
+    @Override
+    public int index() {
+        return index;
     }
 
 }
