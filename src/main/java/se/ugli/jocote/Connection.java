@@ -2,14 +2,14 @@ package se.ugli.jocote;
 
 import java.util.Optional;
 import java.util.function.Function;
-
-import se.ugli.jocote.support.MessageIterator;
-import se.ugli.jocote.support.SessionIterator;
+import java.util.stream.Stream;
 
 public interface Connection extends AutoCloseable {
 
     @Override
     void close();
+
+    void clear();
 
     Optional<Message> get();
 
@@ -27,10 +27,6 @@ public interface Connection extends AutoCloseable {
 
     void put(Message message);
 
-    @Deprecated
-    MessageIterator iterator();
-
-    @Deprecated
-    SessionIterator sessionIterator();
+    void put(Stream<Message> messageStream);
 
 }

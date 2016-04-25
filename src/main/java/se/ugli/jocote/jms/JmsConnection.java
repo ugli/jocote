@@ -5,6 +5,7 @@ import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -55,6 +56,12 @@ public class JmsConnection extends JmsBase implements Connection {
     }
 
     @Override
+    public void clear() {
+        while (iterator().next().isPresent())
+            ;
+    }
+
+    @Override
     public Optional<Message> get() {
         try {
             final javax.jms.Message message = jmsMessageConsumer().receive(receiveTimeout);
@@ -92,8 +99,7 @@ public class JmsConnection extends JmsBase implements Connection {
         }
     }
 
-    @Override
-    public MessageIterator iterator() {
+    private MessageIterator iterator() {
         return new JmsIterator(jmsMessageConsumer(), receiveTimeout);
     }
 
@@ -133,7 +139,11 @@ public class JmsConnection extends JmsBase implements Connection {
     }
 
     @Override
-    public SessionIterator sessionIterator() {
+    public void put(final Stream<Message> messageStream) {
+        messageStream.forEach(this::put);
+    }
+
+    private SessionIterator sessionIterator() {
         return new JmsSessionIterator(jmsConnection(), destination, receiveTimeout);
     }
 

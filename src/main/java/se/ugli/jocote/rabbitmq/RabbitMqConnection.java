@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
@@ -90,6 +91,16 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     }
 
     @Override
+    public void clear() {
+        try {
+            channel.queuePurge(queue);
+        }
+        catch (final IOException e) {
+            throw new JocoteException(e);
+        }
+    }
+
+    @Override
     public Optional<Message> get() {
         try {
             final GetResponse basicGet = channel.basicGet(queue, true);
@@ -126,8 +137,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
         }
     }
 
-    @Override
-    public MessageIterator iterator() {
+    private MessageIterator iterator() {
         return new RabbitMqIterator(channel, queue);
     }
 
@@ -151,7 +161,6 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
         return Streams.sessionStream(sessionIterator(), batchSize);
     }
 
-    @Override
     public SessionIterator sessionIterator() {
         return new RabbitMqSessionIterator(connection, queue, durable, exclusive, autoDelete, arguments);
     }
@@ -170,6 +179,11 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
         catch (final IOException e) {
             throw new JocoteException(e);
         }
+    }
+
+    @Override
+    public void put(final Stream<Message> messageStream) {
+        messageStream.forEach(this::put);
     }
 
 }

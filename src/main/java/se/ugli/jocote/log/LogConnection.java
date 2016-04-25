@@ -3,6 +3,7 @@ package se.ugli.jocote.log;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +16,6 @@ import se.ugli.jocote.MessageStream;
 import se.ugli.jocote.Session;
 import se.ugli.jocote.SessionStream;
 import se.ugli.jocote.support.JocoteUrl;
-import se.ugli.jocote.support.MessageIterator;
-import se.ugli.jocote.support.SessionIterator;
 
 public class LogConnection implements Connection {
 
@@ -37,6 +36,11 @@ public class LogConnection implements Connection {
     }
 
     @Override
+    public void clear() {
+        throw new UnsupportedOperationException("You can't clear log messages.");
+    }
+
+    @Override
     public Optional<Message> get() {
         throw new UnsupportedOperationException("You can't get log messages.");
     }
@@ -44,16 +48,6 @@ public class LogConnection implements Connection {
     @Override
     public <T> Optional<T> get(final Function<Session, Optional<T>> sessionFunc) {
         throw new UnsupportedOperationException("You can't get log messages.");
-    }
-
-    @Override
-    public MessageIterator iterator() {
-        throw new UnsupportedOperationException("You can't iterate log messages.");
-    }
-
-    @Override
-    public SessionIterator sessionIterator() {
-        throw new UnsupportedOperationException("You can't iterate log messages.");
     }
 
     @Override
@@ -93,6 +87,11 @@ public class LogConnection implements Connection {
             logger.debug("Message: {}", message);
         else if (level == Level.TRACE)
             logger.trace("Message: {}", message);
+    }
+
+    @Override
+    public void put(final Stream<Message> messageStream) {
+        messageStream.forEach(this::put);
     }
 
 }

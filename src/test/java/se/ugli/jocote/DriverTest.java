@@ -18,8 +18,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import se.ugli.jocote.rabbitmq.RabbitMqProperties;
-import se.ugli.jocote.support.MessageIterator;
-import se.ugli.jocote.support.SessionIterator;
 
 @RunWith(Parameterized.class)
 public class DriverTest {
@@ -41,11 +39,9 @@ public class DriverTest {
 
     @Before
     public void clearQueue() {
-        connection = DriverManager.connect(url);
-        final MessageIterator iterator = connection.iterator();
-        while (iterator.next().isPresent())
-            ;
-        connection.close();
+        try (Connection c = DriverManager.connect(url)) {
+            c.clear();
+        }
         connection = DriverManager.connect(url);
     }
 
@@ -137,52 +133,10 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldConsumeIterator() {
-        for (int i = 0; i <= 100; i++)
-            connection.put(String.valueOf(i).getBytes());
-        final MessageIterator iterator = connection.iterator();
-        int sum = 0;
-        int count = 0;
-        Optional<Message> next = iterator.next();
-        while (next.isPresent()) {
-            next = iterator.next();
-            if (next.isPresent()) {
-                count++;
-                sum += parseInt(new String(next.get().body()));
-            }
-        }
-        assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(5050));
-        assertThat(connection.get().isPresent(), equalTo(false));
-    }
-
-    @Test
     public void shouldConsumeStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
         assertThat(connection.messageStream(200).mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
-        assertThat(connection.get().isPresent(), equalTo(false));
-    }
-
-    @Test
-    public void shouldAcknoledgeIterator() {
-        for (int i = 0; i <= 100; i++)
-            connection.put(String.valueOf(i).getBytes());
-        final SessionIterator iterator = connection.sessionIterator();
-        int sum = 0;
-        int count = 0;
-        Optional<Message> next = iterator.next();
-        while (next.isPresent()) {
-            next = iterator.next();
-            if (next.isPresent()) {
-                count++;
-                sum += parseInt(new String(next.get().body()));
-            }
-        }
-        iterator.ack();
-        iterator.close();
-        assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(5050));
         assertThat(connection.get().isPresent(), equalTo(false));
     }
 
@@ -217,26 +171,6 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldLeaveIterator() {
-        for (int i = 0; i < 100; i++)
-            connection.put(String.valueOf(i).getBytes());
-        final SessionIterator iterator = connection.sessionIterator();
-        int sum = 0;
-        int count = 0;
-        Optional<Message> next = iterator.next();
-        while (next.isPresent()) {
-            count++;
-            sum += parseInt(new String(next.get().body()));
-            next = iterator.next();
-        }
-        iterator.nack();
-        iterator.close();
-        assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(4950));
-        assertThat(new String(connection.get().get().body()), equalTo("0"));
-    }
-
-    @Test
     public void shouldLeaveStream() {
         for (int i = 0; i < 100; i++)
             connection.put(String.valueOf(i).getBytes());
@@ -245,31 +179,6 @@ public class DriverTest {
             stream.nack();
         }
         assertThat(new String(connection.get().get().body()), equalTo("0"));
-    }
-
-    @Test
-    public void shouldThrowThenNotLeavingOrAcknowledgeMessageIterator() {
-        for (int i = 0; i <= 100; i++)
-            connection.put(String.valueOf(i).getBytes());
-        final SessionIterator iterator = connection.sessionIterator();
-        int sum = 0;
-        int count = 0;
-        Optional<Message> next = iterator.next();
-        while (next.isPresent()) {
-            next = iterator.next();
-            if (next.isPresent()) {
-                count++;
-                sum += parseInt(new String(next.get().body()));
-            }
-        }
-        assertThat(count, equalTo(100));
-        assertThat(sum, equalTo(5050));
-        try {
-            iterator.close();
-        }
-        catch (final JocoteException e) {
-            assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));
-        }
     }
 
     @Test

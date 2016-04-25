@@ -1,14 +1,16 @@
 package se.ugli.jocote.ram;
 
+import static java.util.UUID.randomUUID;
+
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.JocoteException;
@@ -17,8 +19,6 @@ import se.ugli.jocote.MessageStream;
 import se.ugli.jocote.Session;
 import se.ugli.jocote.SessionStream;
 import se.ugli.jocote.Subscription;
-import se.ugli.jocote.support.MessageIterator;
-import se.ugli.jocote.support.SessionIterator;
 import se.ugli.jocote.support.Streams;
 
 class RamConnection implements Connection {
@@ -28,6 +28,11 @@ class RamConnection implements Connection {
 
     @Override
     public void close() {
+    }
+
+    @Override
+    public void clear() {
+        queue.clear();
     }
 
     @Override
@@ -49,42 +54,42 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public MessageIterator iterator() {
-        return new RamIterator(queue);
-    }
-
-    @Override
     public MessageStream messageStream() {
-        return Streams.messageStream(iterator());
+        return Streams.messageStream(new RamIterator(queue));
     }
 
     @Override
     public SessionStream sessionStream() {
-        return Streams.sessionStream(sessionIterator());
+        return Streams.sessionStream(new RamSessionIterator(queue));
     }
 
     @Override
     public SessionStream sessionStream(final int batchSize) {
-        return Streams.sessionStream(sessionIterator(), batchSize);
+        return Streams.sessionStream(new RamSessionIterator(queue), batchSize);
     }
 
     @Override
     public MessageStream messageStream(final int batchSize) {
-        return Streams.messageStream(iterator(), batchSize);
+        return Streams.messageStream(new RamIterator(queue), batchSize);
     }
 
     @Override
     public void put(final byte[] message) {
-        put(Message.builder().id(UUID.randomUUID().toString()).body(message).build());
+        put(Message.builder().id(randomUUID().toString()).body(message).build());
     }
 
     @Override
     public void put(final Message message) {
-        final Message cloneWithId = cloneWithId(message, UUID.randomUUID().toString());
+        final Message cloneWithId = cloneWithId(message, randomUUID().toString());
         if (subscribers.isEmpty())
             queue.offer(cloneWithId);
         else
             randomSubscriber().accept(cloneWithId);
+    }
+
+    @Override
+    public void put(final Stream<Message> messageStream) {
+        messageStream.forEach(this::put);
     }
 
     private Message cloneWithId(final Message msg, final String id) {
@@ -96,11 +101,6 @@ class RamConnection implements Connection {
         final SecureRandom secureRandom = new SecureRandom(seed);
         final int index = secureRandom.nextInt(subscribers.size());
         return subscribers.get(index);
-    }
-
-    @Override
-    public SessionIterator sessionIterator() {
-        return new RamSessionIterator(queue);
     }
 
     Subscription addSubscription(final Consumer<Message> consumer) {
