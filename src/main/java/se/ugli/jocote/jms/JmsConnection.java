@@ -1,28 +1,23 @@
 package se.ugli.jocote.jms;
 
-import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
-import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
-
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.MessageProducer;
-
 import se.ugli.jocote.Connection;
-import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.*;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.MessageStream;
 import se.ugli.jocote.Session;
-import se.ugli.jocote.SessionStream;
 import se.ugli.jocote.support.JocoteUrl;
 import se.ugli.jocote.support.MessageIterator;
 import se.ugli.jocote.support.SessionIterator;
 import se.ugli.jocote.support.Streams;
+
+import javax.jms.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
+import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
+import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 
 public class JmsConnection extends JmsBase implements Connection {
 
@@ -139,8 +134,10 @@ public class JmsConnection extends JmsBase implements Connection {
     }
 
     @Override
-    public void put(final Stream<Message> messageStream) {
-        messageStream.forEach(this::put);
+    public int put(final Stream<Message> messageStream) {
+        List<Message> messages = messageStream.collect(toList());
+        messages.forEach(this::put);
+        return messages.size();
     }
 
     private SessionIterator sessionIterator() {

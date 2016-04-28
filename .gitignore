@@ -2,4 +2,7 @@
 /.classpath
 /.project
 /target/
+/.d
+/.idea/
 /.DS_Store
+/jocote.iml

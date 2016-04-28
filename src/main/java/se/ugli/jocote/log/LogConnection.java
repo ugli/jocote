@@ -1,6 +1,7 @@
 package se.ugli.jocote.log;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -16,6 +17,8 @@ import se.ugli.jocote.MessageStream;
 import se.ugli.jocote.Session;
 import se.ugli.jocote.SessionStream;
 import se.ugli.jocote.support.JocoteUrl;
+
+import static java.util.stream.Collectors.toList;
 
 public class LogConnection implements Connection {
 
@@ -90,8 +93,11 @@ public class LogConnection implements Connection {
     }
 
     @Override
-    public void put(final Stream<Message> messageStream) {
-        messageStream.forEach(this::put);
+    public int put(final Stream<Message> messageStream) {
+        List<Message> messages = messageStream.collect(toList());
+        messages.forEach(this::put);
+        return messages.size();
     }
+
 
 }

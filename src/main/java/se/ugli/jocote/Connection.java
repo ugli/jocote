@@ -27,6 +27,5 @@ public interface Connection extends AutoCloseable {
 
     void put(Message message);
 
-    void put(Stream<Message> messageStream);
-
+    int put(Stream<Message> messageStream);
 }

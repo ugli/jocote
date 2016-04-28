@@ -1,7 +1,9 @@
 package se.ugli.jocote.rabbitmq;
 
+import static java.util.stream.Collectors.toList;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -182,8 +184,10 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     }
 
     @Override
-    public void put(final Stream<Message> messageStream) {
-        messageStream.forEach(this::put);
+    public int put(final Stream<Message> messageStream) {
+        List<Message> messages = messageStream.collect(toList());
+        messages.forEach(this::put);
+        return messages.size();
     }
 
 }

@@ -1,6 +1,7 @@
 package se.ugli.jocote.ram;
 
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.toList;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -88,9 +89,12 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public void put(final Stream<Message> messageStream) {
-        messageStream.forEach(this::put);
+    public int put(final Stream<Message> messageStream) {
+        List<Message> messages = messageStream.collect(toList());
+        messages.forEach(this::put);
+        return messages.size();
     }
+
 
     private Message cloneWithId(final Message msg, final String id) {
         return Message.builder().id(id).body(msg.body()).headers(msg.headers()).properties(msg.properties()).build();
@@ -107,13 +111,7 @@ class RamConnection implements Connection {
         subscribers.add(consumer);
         while (!queue.isEmpty())
             randomSubscriber().accept(queue.poll());
-        return new Subscription() {
-
-            @Override
-            public void close() {
-                subscribers.remove(consumer);
-            }
-        };
+        return () -> subscribers.remove(consumer);
     }
 
 }

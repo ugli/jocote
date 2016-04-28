@@ -12,7 +12,7 @@ import se.ugli.jocote.support.JocoteUrl;
 public final class DriverManager {
 
     private final static Logger logger = LoggerFactory.getLogger(DriverManager.class);
-    private static final Map<String, Driver> drivers = new ConcurrentHashMap<String, Driver>();
+    private static final Map<String, Driver> drivers = new ConcurrentHashMap<>();
 
     static {
         tryToRegister("se.ugli.jocote.activemq.ActiveMqDriver");

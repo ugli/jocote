@@ -1,5 +1,16 @@
 package se.ugli.jocote;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import se.ugli.jocote.rabbitmq.RabbitMqProperties;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+
 import static java.lang.Integer.parseInt;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -7,34 +18,21 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
-import se.ugli.jocote.rabbitmq.RabbitMqProperties;
-
 @RunWith(Parameterized.class)
 public class DriverTest {
+
+    private final String url;
+    private final String testName;
+    private Connection connection;
+    public DriverTest(final String testName, final String url) {
+        this.testName = testName;
+        this.url = url;
+    }
 
     @SuppressWarnings("rawtypes")
     @Parameterized.Parameters(name = "{0}")
     public static Collection testArray() {
-        return Arrays.asList(new Object[][] { { "ActiveMQ", "activemq:/APA" }, { "RAM", "ram:/APA" }, { "RabbitMQ", "rabbitmq:/APA" } });
-    }
-
-    private Connection connection;
-    private final String url;
-    private final String testName;
-
-    public DriverTest(final String testName, final String url) {
-        this.testName = testName;
-        this.url = url;
+        return Arrays.asList(new Object[][]{{"ActiveMQ", "activemq:/APA"}, {"RAM", "ram:/APA"}, {"RabbitMQ", "rabbitmq:/APA"}});
     }
 
     @Before
@@ -126,8 +124,7 @@ public class DriverTest {
         try {
             connection.put("hej".getBytes());
             connection.get(session -> Optional.of(session.message()));
-        }
-        catch (final JocoteException e) {
+        } catch (final JocoteException e) {
             assertThat(e.getMessage(), equalTo("You have to acknowledge or leave message"));
         }
     }
@@ -151,15 +148,6 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldLimitStream() {
-        for (int i = 0; i <= 100; i++)
-            connection.put(String.valueOf(i).getBytes());
-        final MessageStream stream = connection.messageStream(10);
-        assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
-        assertThat(stream.elementIndex(), is(10));
-    }
-
-    @Test
     public void shouldLimitSessionStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
@@ -168,6 +156,14 @@ public class DriverTest {
             stream.ack();
             assertThat(stream.elementIndex(), is(10));
         }
+    }
+
+    @Test
+    public void shouldLimitMessageStream() {
+        for (int i = 0; i <= 100; i++)
+            connection.put(String.valueOf(i).getBytes());
+        assertThat(connection.messageStream(10).mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
+        assertThat(connection.messageStream().mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5005));
     }
 
     @Test
@@ -187,20 +183,9 @@ public class DriverTest {
             connection.put(String.valueOf(i).getBytes());
         try (SessionStream stream = connection.sessionStream(200)) {
             assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
-        }
-        catch (final JocoteException e) {
+        } catch (final JocoteException e) {
             assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));
         }
-    }
-
-    private class IntWrap {
-        int i = 0;
-
-        @Override
-        public String toString() {
-            return "IntWrap [i=" + i + "]";
-        }
-
     }
 
     @Test
@@ -237,6 +222,16 @@ public class DriverTest {
         assertThat(count.i, equalTo(100));
         assertThat(sum.i, equalTo(4950));
         assertThat(connection.get().isPresent(), equalTo(false));
+    }
+
+    private class IntWrap {
+        int i = 0;
+
+        @Override
+        public String toString() {
+            return "IntWrap [i=" + i + "]";
+        }
+
     }
 
 }
