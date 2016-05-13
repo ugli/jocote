@@ -1,11 +1,14 @@
 package se.ugli.jocote.rabbitmq;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.stream.Collectors.toList;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -39,6 +42,9 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     public RabbitMqConnection(final JocoteUrl url) {
         try {
             final ConnectionFactory factory = new ConnectionFactory();
+            factory.setSharedExecutor(newSingleThreadExecutor());
+            factory.setShutdownExecutor(newSingleThreadExecutor());
+            factory.setThreadFactory(r -> new Thread(r, "jocote_rabbitmq_" + UUID.randomUUID()));
             if (url.host != null)
                 factory.setHost(url.host);
             else
@@ -185,7 +191,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
     @Override
     public int put(final Stream<Message> messageStream) {
-        List<Message> messages = messageStream.collect(toList());
+        final List<Message> messages = messageStream.collect(toList());
         messages.forEach(this::put);
         return messages.size();
     }
