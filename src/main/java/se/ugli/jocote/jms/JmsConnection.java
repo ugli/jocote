@@ -6,7 +6,6 @@ import se.ugli.jocote.Message;
 import se.ugli.jocote.Session;
 import se.ugli.jocote.support.JocoteUrl;
 import se.ugli.jocote.support.MessageIterator;
-import se.ugli.jocote.support.SessionIterator;
 import se.ugli.jocote.support.Streams;
 
 import javax.jms.*;
@@ -36,8 +35,7 @@ public class JmsConnection extends JmsBase implements Connection {
         try {
             _connection = connectionFactory.createConnection(url.username, url.password);
             _connection.start();
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -63,8 +61,7 @@ public class JmsConnection extends JmsBase implements Connection {
             if (message != null)
                 return Optional.of(MessageFactory.create(message));
             return Optional.empty();
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -84,11 +81,9 @@ public class JmsConnection extends JmsBase implements Connection {
             if (cxt.isClosable())
                 return result;
             throw new JocoteException("You have to acknowledge or leave message");
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
-        }
-        finally {
+        } finally {
             close(messageConsumer);
             close(session);
         }
@@ -100,22 +95,13 @@ public class JmsConnection extends JmsBase implements Connection {
 
     @Override
     public MessageStream messageStream() {
-        return Streams.messageStream(iterator());
+        return Streams.messageStream(new JmsIterator(jmsMessageConsumer(), receiveTimeout));
     }
 
-    @Override
-    public MessageStream messageStream(final int batchSize) {
-        return Streams.messageStream(iterator(), batchSize);
-    }
 
     @Override
     public SessionStream sessionStream() {
-        return Streams.sessionStream(sessionIterator());
-    }
-
-    @Override
-    public SessionStream sessionStream(final int batchSize) {
-        return Streams.sessionStream(sessionIterator(), batchSize);
+        return Streams.sessionStream(new JmsSessionIterator(jmsConnection(), destination, receiveTimeout));
     }
 
     @Override
@@ -127,8 +113,7 @@ public class JmsConnection extends JmsBase implements Connection {
     public void put(final Message message) {
         try {
             jmsMessageProducer().send(JmsMessageFactory.create(jmsSession(), message));
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -140,17 +125,12 @@ public class JmsConnection extends JmsBase implements Connection {
         return messages.size();
     }
 
-    private SessionIterator sessionIterator() {
-        return new JmsSessionIterator(jmsConnection(), destination, receiveTimeout);
-    }
-
     public MessageConsumer jmsMessageConsumer() {
         try {
             if (_messageConsumer == null)
                 _messageConsumer = jmsSession().createConsumer(destination);
             return _messageConsumer;
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -160,8 +140,7 @@ public class JmsConnection extends JmsBase implements Connection {
             if (_messageProducer == null)
                 _messageProducer = jmsSession().createProducer(destination);
             return _messageProducer;
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -171,8 +150,7 @@ public class JmsConnection extends JmsBase implements Connection {
             if (_session == null)
                 _session = jmsConnection().createSession(false, AUTO_ACKNOWLEDGE.mode);
             return _session;
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }

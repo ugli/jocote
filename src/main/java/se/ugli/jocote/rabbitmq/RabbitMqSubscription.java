@@ -1,19 +1,16 @@
 package se.ugli.jocote.rabbitmq;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
-
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.ShutdownSignalException;
-
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.Subscription;
 import se.ugli.jocote.support.JocoteUrl;
+
+import java.io.IOException;
+import java.util.function.Consumer;
 
 class RabbitMqSubscription extends RabbitMqBase implements Subscription, com.rabbitmq.client.Consumer {
 
@@ -23,25 +20,19 @@ class RabbitMqSubscription extends RabbitMqBase implements Subscription, com.rab
 
     RabbitMqSubscription(final JocoteUrl url, final Consumer<Message> consumer) {
         try {
-            final ConnectionFactory factory = new ConnectionFactory();
-            if (url.host != null)
-                factory.setHost(url.host);
-            else
-                factory.setHost("localhost");
-            if (url.port != null)
-                factory.setPort(url.port);
-            connection = factory.newConnection();
+            connection = ClientConnectionFactory.create(url);
             channel = connection.createChannel();
             channel.basicConsume(url.queue, true, this);
         }
-        catch (final TimeoutException | IOException e) {
+        catch (IOException e) {
             throw new JocoteException(e);
         }
         this.consumer = consumer;
     }
 
     @Override
-    public void handleDelivery(final String consumerTag, final Envelope envelope, final BasicProperties props, final byte[] body) {
+    public void handleDelivery(final String consumerTag, final Envelope envelope, final BasicProperties props,
+                               final byte[] body) {
         consumer.accept(MessageFactory.create(consumerTag, envelope, props, body));
     }
 

@@ -1,23 +1,22 @@
 package se.ugli.jocote.support;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+import se.ugli.jocote.Message;
+import se.ugli.jocote.Message.MessageBuilder;
 
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.junit.Test;
-
-import se.ugli.jocote.Message;
-import se.ugli.jocote.Message.MessageBuilder;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 public class StreamsTest {
 
     @Test
     public void shouldLimitStream() {
-        final int batchSize = 4;
+        final long batchSize = 4;
 
         final MessageIterator iterator = new MessageIterator() {
 
@@ -40,8 +39,8 @@ public class StreamsTest {
                 return consumed;
             }
         };
-        final long count = Streams.messageStream(iterator, batchSize).count();
-        assertThat((int) count, is(batchSize));
+        assertThat(Streams.messageStream(iterator).limit(4).count(), is(batchSize));
+        assertThat(iterator.index(), is((int)batchSize));
     }
 
 }

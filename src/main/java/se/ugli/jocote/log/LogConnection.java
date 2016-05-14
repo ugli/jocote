@@ -25,7 +25,7 @@ public class LogConnection implements Connection {
     private final Level level;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public LogConnection(final JocoteUrl url) {
+    LogConnection(final JocoteUrl url) {
         try {
             this.level = Level.valueOf(url.queue.toUpperCase());
         }
@@ -59,17 +59,7 @@ public class LogConnection implements Connection {
     }
 
     @Override
-    public MessageStream messageStream(final int batchSize) {
-        throw new UnsupportedOperationException("You can't stream log messages.");
-    }
-
-    @Override
     public SessionStream sessionStream() {
-        throw new UnsupportedOperationException("You can't stream log messages.");
-    }
-
-    @Override
-    public SessionStream sessionStream(final int batchSize) {
         throw new UnsupportedOperationException("You can't stream log messages.");
     }
 

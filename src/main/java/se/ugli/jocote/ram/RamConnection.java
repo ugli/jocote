@@ -65,16 +65,6 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public SessionStream sessionStream(final int batchSize) {
-        return Streams.sessionStream(new RamSessionIterator(queue), batchSize);
-    }
-
-    @Override
-    public MessageStream messageStream(final int batchSize) {
-        return Streams.messageStream(new RamIterator(queue), batchSize);
-    }
-
-    @Override
     public void put(final byte[] message) {
         put(Message.builder().id(randomUUID().toString()).body(message).build());
     }

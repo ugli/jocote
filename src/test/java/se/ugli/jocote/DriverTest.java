@@ -133,7 +133,7 @@ public class DriverTest {
     public void shouldConsumeStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        assertThat(connection.messageStream(200).mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
+        assertThat(connection.messageStream().mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
         assertThat(connection.get().isPresent(), equalTo(false));
     }
 
@@ -141,7 +141,7 @@ public class DriverTest {
     public void shouldAcknoledgeStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        try (SessionStream stream = connection.sessionStream(200)) {
+        try (SessionStream stream = connection.sessionStream()) {
             assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
             stream.ack();
         }
@@ -151,8 +151,8 @@ public class DriverTest {
     public void shouldLimitSessionStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        try (SessionStream stream = connection.sessionStream(10)) {
-            assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
+        try (SessionStream stream = connection.sessionStream()) {
+            assertThat(stream.limit(10).mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
             stream.ack();
             assertThat(stream.elementIndex(), is(10));
         }
@@ -162,7 +162,7 @@ public class DriverTest {
     public void shouldLimitMessageStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        assertThat(connection.messageStream(10).mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
+        assertThat(connection.messageStream().limit(10).mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
         assertThat(connection.messageStream().mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5005));
     }
 
@@ -181,7 +181,7 @@ public class DriverTest {
     public void shouldThrowThenNotLeavingOrAcknowledgeMessageStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        try (SessionStream stream = connection.sessionStream(200)) {
+        try (SessionStream stream = connection.sessionStream()) {
             assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
         } catch (final JocoteException e) {
             assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));

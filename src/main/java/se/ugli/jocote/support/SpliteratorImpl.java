@@ -1,54 +1,52 @@
 package se.ugli.jocote.support;
 
-import static java.util.Spliterators.spliterator;
+import se.ugli.jocote.Message;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-import se.ugli.jocote.Message;
+import static java.util.Spliterators.spliterator;
 
 class SpliteratorImpl implements Spliterator<Message> {
 
+    private static final int BATCH_UNIT = 1 << 10;
     private final MessageIterator iterator;
-    private final int batchSize;
 
-    SpliteratorImpl(final MessageIterator iterator, final int batchSize) {
+    SpliteratorImpl(final MessageIterator iterator) {
         this.iterator = iterator;
-        this.batchSize = batchSize;
     }
 
     @Override
     public boolean tryAdvance(final Consumer<? super Message> action) {
-        if (action == null)
-            throw new NullPointerException();
-        if (iterator.index() < batchSize) {
-            final Optional<Message> next = iterator.next();
-            if (next.isPresent()) {
-                action.accept(next.get());
-                return true;
-            }
+        Objects.requireNonNull(action);
+        final Optional<Message> next = iterator.next();
+        if (next.isPresent()) {
+            action.accept(next.get());
+            return true;
         }
         return false;
     }
 
     @Override
     public Spliterator<Message> trySplit() {
-        final Message[] array = new Message[batchSize];
+        final Message[] array = new Message[BATCH_UNIT];
         int toIndex = 0;
         Optional<Message> next = iterator.next();
-        while (next.isPresent()) {
-            array[toIndex++] = next.get();
-            next = iterator.next();
+        if (next.isPresent()) {
+            while (next.isPresent()) {
+                array[toIndex++] = next.get();
+                next = iterator.next();
+            }
+            return spliterator(array, 0, toIndex, 0);
         }
-        if (toIndex > 0)
-            return spliterator(array, 0, toIndex, characteristics());
         return null;
     }
 
     @Override
     public long estimateSize() {
-        return batchSize - iterator.index();
+        return Long.MAX_VALUE;
     }
 
     @Override

@@ -17,11 +17,7 @@ public interface Connection extends AutoCloseable {
 
     MessageStream messageStream();
 
-    MessageStream messageStream(int limit);
-
     SessionStream sessionStream();
-
-    SessionStream sessionStream(int limit);
 
     void put(byte[] message);
 

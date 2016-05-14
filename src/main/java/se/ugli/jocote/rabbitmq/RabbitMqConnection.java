@@ -1,33 +1,21 @@
 package se.ugli.jocote.rabbitmq;
 
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
-import static java.util.stream.Collectors.toList;
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.GetResponse;
+import se.ugli.jocote.*;
+import se.ugli.jocote.support.JocoteUrl;
+import se.ugli.jocote.support.Streams;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.ConnectionFactory;
-import com.rabbitmq.client.GetResponse;
-
-import se.ugli.jocote.Connection;
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.Message;
-import se.ugli.jocote.MessageStream;
-import se.ugli.jocote.Session;
-import se.ugli.jocote.SessionStream;
-import se.ugli.jocote.support.JocoteUrl;
-import se.ugli.jocote.support.MessageIterator;
-import se.ugli.jocote.support.SessionIterator;
-import se.ugli.jocote.support.Streams;
+import static java.util.stream.Collectors.toList;
 
 public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
@@ -39,19 +27,9 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     private boolean autoDelete;
     private Map<String, Object> arguments;
 
-    public RabbitMqConnection(final JocoteUrl url) {
+    RabbitMqConnection(final JocoteUrl url) {
         try {
-            final ConnectionFactory factory = new ConnectionFactory();
-            factory.setSharedExecutor(newSingleThreadExecutor());
-            factory.setShutdownExecutor(newSingleThreadExecutor());
-            factory.setThreadFactory(r -> new Thread(r, "jocote_rabbitmq_" + UUID.randomUUID()));
-            if (url.host != null)
-                factory.setHost(url.host);
-            else
-                factory.setHost("localhost");
-            if (url.port != null)
-                factory.setPort(url.port);
-            connection = factory.newConnection();
+            connection = ClientConnectionFactory.create(url);
             channel = connection.createChannel();
             queue = url.queue;
             durable = durable(url);
@@ -60,7 +38,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
             arguments = arguments(url);
             channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
-        catch (final TimeoutException | IOException e) {
+        catch (final IOException e) {
             throw new JocoteException(e);
         }
     }
@@ -83,13 +61,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
     private boolean durable(final JocoteUrl url) {
         final String durable = url.params.get("durable");
-        if (durable != null)
-            return "true".equals(durable);
-        return true;
-    }
-
-    public Channel getChannel() {
-        return channel;
+        return durable == null || "true".equals(durable);
     }
 
     @Override
@@ -145,32 +117,14 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
         }
     }
 
-    private MessageIterator iterator() {
-        return new RabbitMqIterator(channel, queue);
-    }
-
     @Override
     public MessageStream messageStream() {
-        return Streams.messageStream(iterator());
-    }
-
-    @Override
-    public MessageStream messageStream(final int batchSize) {
-        return Streams.messageStream(iterator(), batchSize);
+        return Streams.messageStream(new RabbitMqIterator(channel, queue));
     }
 
     @Override
     public SessionStream sessionStream() {
-        return Streams.sessionStream(sessionIterator());
-    }
-
-    @Override
-    public SessionStream sessionStream(final int batchSize) {
-        return Streams.sessionStream(sessionIterator(), batchSize);
-    }
-
-    public SessionIterator sessionIterator() {
-        return new RabbitMqSessionIterator(connection, queue, durable, exclusive, autoDelete, arguments);
+        return Streams.sessionStream(new RabbitMqSessionIterator(connection, queue, durable, exclusive, autoDelete, arguments));
     }
 
     @Override
@@ -195,5 +149,14 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
         messages.forEach(this::put);
         return messages.size();
     }
+
+    public com.rabbitmq.client.Connection rabbitConnection() {
+        return connection;
+    }
+
+    public Channel rabbitChannel() {
+        return channel;
+    }
+
 
 }
