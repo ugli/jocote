@@ -99,36 +99,6 @@ public class DriverTest {
     }
 
     @Test
-    public void shouldAcknowledgeMessage() {
-        connection.put("hej".getBytes());
-        connection.get(session -> {
-            session.ack();
-            return Optional.of(session.message());
-        });
-        assertThat(connection.get().isPresent(), equalTo(false));
-    }
-
-    @Test
-    public void shouldLeaveMessage() {
-        connection.put("hej".getBytes());
-        connection.get(session -> {
-            session.nack();
-            return Optional.of(session.message());
-        });
-        assertThat(new String(connection.get().get().body()), equalTo("hej"));
-    }
-
-    @Test
-    public void shouldThrowThenNotLeavingOrAcknowledgeMessage() {
-        try {
-            connection.put("hej".getBytes());
-            connection.get(session -> Optional.of(session.message()));
-        } catch (final JocoteException e) {
-            assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));
-        }
-    }
-
-    @Test
     public void shouldConsumeStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());

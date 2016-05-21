@@ -1,12 +1,10 @@
 package se.ugli.jocote;
 
-import se.ugli.jocote.support.SessionImpl;
 import se.ugli.jocote.support.Streams;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 public interface Connection extends AutoCloseable {
@@ -24,12 +22,6 @@ public interface Connection extends AutoCloseable {
 
     default Optional<Message> get() {
         return messageIterator().next();
-    }
-
-    default <T> Optional<T> get(final Function<Session, Optional<T>> sessionFunc) {
-        try (Session session = new SessionImpl(sessionIterator())) {
-            return sessionFunc.apply(session);
-        }
     }
 
     default Stream<Message> messageStream() {
