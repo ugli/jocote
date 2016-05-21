@@ -1,7 +1,9 @@
 package se.ugli.jocote;
 
+import java.util.Optional;
+
 public interface Session extends SessionAware {
 
-    Message message();
+    Optional<Message> message();
 
 }

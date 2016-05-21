@@ -1,18 +1,10 @@
 package se.ugli.jocote.rabbitmq;
 
-import static java.util.stream.Collectors.toMap;
-import static se.ugli.jocote.Message.builder;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.AppId;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.ContentEncoding;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.ContentType;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.CorrelationId;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.DeliveryMode;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.Expiration;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.Priority;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.ReplyTo;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.Timestamp;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.Type;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.UserId;
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Envelope;
+import com.rabbitmq.client.GetResponse;
+import com.rabbitmq.client.LongString;
+import se.ugli.jocote.Message;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -21,16 +13,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.GetResponse;
-import com.rabbitmq.client.LongString;
-
-import se.ugli.jocote.Message;
+import static java.util.stream.Collectors.toMap;
+import static se.ugli.jocote.Message.builder;
+import static se.ugli.jocote.rabbitmq.RabbitMqProperties.*;
 
 class MessageFactory {
 
     static Message create(final GetResponse response) {
+        if (response == null) {
+            return null;
+        }
         final BasicProperties props = response.getProps();
         final byte[] body = response.getBody();
         return builder().id(props.getMessageId()).body(body).properties(properties(props)).headers(headers(props)).build();
@@ -54,7 +46,7 @@ class MessageFactory {
         return value;
     }
 
-    public static Map<String, Object> properties(final BasicProperties properties) {
+    private static Map<String, Object> properties(final BasicProperties properties) {
         final HashMap<String, Object> result = new HashMap<>();
         result.put(AppId.name(), properties.getAppId());
         result.put(ContentEncoding.name(), properties.getContentEncoding());

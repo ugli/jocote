@@ -3,6 +3,7 @@ package se.ugli.jocote.support;
 import org.junit.Test;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.Message.MessageBuilder;
+import se.ugli.jocote.MessageIterator;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -24,23 +25,14 @@ public class StreamsTest {
                     Arrays.asList(new MessageBuilder().build(), new MessageBuilder().build(), new MessageBuilder().build(),
                             new MessageBuilder().build(), new MessageBuilder().build(), new MessageBuilder().build(),
                             new MessageBuilder().build(), new MessageBuilder().build(), new MessageBuilder().build()));
-            private int consumed;
 
             @Override
             public Optional<Message> next() {
-                final Optional<Message> result = Optional.ofNullable(queue.poll());
-                if (result.isPresent())
-                    consumed++;
-                return result;
+                return Optional.ofNullable(queue.poll());
             }
 
-            @Override
-            public int index() {
-                return consumed;
-            }
         };
         assertThat(Streams.messageStream(iterator).limit(4).count(), is(batchSize));
-        assertThat(iterator.index(), is((int)batchSize));
     }
 
 }

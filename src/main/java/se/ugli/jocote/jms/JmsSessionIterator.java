@@ -1,18 +1,13 @@
 package se.ugli.jocote.jms;
 
-import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
-
-import java.util.Optional;
-
-import javax.jms.Connection;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
-
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.support.SessionIterator;
+import se.ugli.jocote.SessionIterator;
+
+import javax.jms.*;
+import java.util.Optional;
+
+import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 
 class JmsSessionIterator extends JmsBase implements SessionIterator {
 
@@ -22,7 +17,6 @@ class JmsSessionIterator extends JmsBase implements SessionIterator {
 
     private javax.jms.Message lastMessage;
     private boolean closable = false;
-    private int index = 0;
 
     JmsSessionIterator(final Connection connection, final Destination destination, final long receiveTimeout) {
         try {
@@ -65,21 +59,13 @@ class JmsSessionIterator extends JmsBase implements SessionIterator {
     public Optional<Message> next() {
         try {
             final javax.jms.Message message = jmsConsumer.receive(receiveTimeout);
-            if (message != null) {
+            if (message != null)
                 lastMessage = message;
-                index++;
-                return Optional.of(MessageFactory.create(message));
-            }
-            return Optional.empty();
+            return Optional.ofNullable(MessageFactory.create(message));
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
         }
-    }
-
-    @Override
-    public int index() {
-        return index;
     }
 
 }

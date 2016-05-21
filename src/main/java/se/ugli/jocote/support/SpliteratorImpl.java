@@ -1,6 +1,7 @@
 package se.ugli.jocote.support;
 
 import se.ugli.jocote.Message;
+import se.ugli.jocote.MessageIterator;
 
 import java.util.Objects;
 import java.util.Optional;

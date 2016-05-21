@@ -1,39 +1,40 @@
 package se.ugli.jocote.jms;
 
-import static se.ugli.jocote.jms.JmsConnection.JMS_MESSAGE_TYPE;
-
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
 
 import javax.jms.BytesMessage;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.Message;
+import static se.ugli.jocote.jms.JmsConnection.JMS_MESSAGE_TYPE;
 
 class MessageFactory {
 
-    public static final String CorrelationID = "CorrelationID";
-    public static final String CorrelationIDAsBytes = "CorrelationIDAsBytes";
-    public static final String DeliveryMode = "DeliveryMode";
-    public static final String Destination = "Destination";
-    public static final String Expiration = "Expiration";
-    public static final String MessageID = "MessageID";
-    public static final String Priority = "Priority";
-    public static final String Redelivered = "Redelivered";
-    public static final String ReplyTo = "ReplyTo";
-    public static final String Timestamp = "Timestamp";
-    public static final String Type = "Type";
+    private static final String CorrelationID = "CorrelationID";
+    private static final String CorrelationIDAsBytes = "CorrelationIDAsBytes";
+    private static final String DeliveryMode = "DeliveryMode";
+    private static final String Destination = "Destination";
+    private static final String Expiration = "Expiration";
+    private static final String MessageID = "MessageID";
+    private static final String Priority = "Priority";
+    private static final String Redelivered = "Redelivered";
+    private static final String ReplyTo = "ReplyTo";
+    private static final String Timestamp = "Timestamp";
+    private static final String Type = "Type";
 
     static Message create(final javax.jms.Message msg) {
         try {
+            if (msg == null)
+                return null;
             final String id = msg.getJMSMessageID();
             final byte[] body = body(msg);
             final Map<String, Object> headers = headers(msg);
             final Map<String, Object> properties = properties(msg);
-            return se.ugli.jocote.Message.builder().id(id).body(body).headers(headers).properties(properties).build();
+            return Message.builder().id(id).body(body).headers(headers).properties(properties).build();
         }
         catch (final JMSException e) {
             throw new JocoteException(e);
@@ -58,7 +59,7 @@ class MessageFactory {
     }
 
     private static Map<String, Object> headers(final javax.jms.Message message) throws JMSException {
-        final Map<String, Object> result = new HashMap<String, Object>();
+        final Map<String, Object> result = new HashMap<>();
         putHeadedIfPresent(result, CorrelationID, message.getJMSCorrelationID());
         putHeadedIfPresent(result, CorrelationIDAsBytes, message.getJMSCorrelationIDAsBytes());
         putHeadedIfPresent(result, DeliveryMode, message.getJMSDeliveryMode());
@@ -80,7 +81,7 @@ class MessageFactory {
 
     @SuppressWarnings("unchecked")
     private static Map<String, Object> properties(final javax.jms.Message message) throws JMSException {
-        final HashMap<String, Object> result = new HashMap<String, Object>();
+        final HashMap<String, Object> result = new HashMap<>();
         final Enumeration<String> propertyNames = message.getPropertyNames();
         while (propertyNames.hasMoreElements()) {
             final String propertyName = propertyNames.nextElement();

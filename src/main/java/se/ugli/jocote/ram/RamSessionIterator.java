@@ -1,33 +1,29 @@
 package se.ugli.jocote.ram;
 
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
+import se.ugli.jocote.SessionIterator;
+
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.Message;
-import se.ugli.jocote.support.SessionIterator;
-
-public class RamSessionIterator implements SessionIterator {
+class RamSessionIterator implements SessionIterator {
 
     private Queue<Message> backoutQueue = new ConcurrentLinkedQueue<>();
     private boolean closable;
     private final Queue<Message> connectionQueue;
-    private int index = 0;
 
-    public RamSessionIterator(final Queue<Message> connectionQueue) {
+    RamSessionIterator(final Queue<Message> connectionQueue) {
         this.connectionQueue = connectionQueue;
     }
 
     @Override
     public Optional<Message> next() {
         final Message message = connectionQueue.poll();
-        if (message != null) {
+        if (message != null)
             backoutQueue.offer(message);
-            index++;
-            return Optional.of(message);
-        }
-        return Optional.empty();
+        return Optional.ofNullable(message);
     }
 
     @Override
@@ -47,11 +43,6 @@ public class RamSessionIterator implements SessionIterator {
         for (final Message message : backoutQueue)
             connectionQueue.offer(message);
         closable = true;
-    }
-
-    @Override
-    public int index() {
-        return index;
     }
 
 }

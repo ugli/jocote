@@ -1,17 +1,16 @@
 package se.ugli.jocote.rabbitmq;
 
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
-
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 class RabbitMqBase {
 
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected void close(final Channel channel) {
         try {

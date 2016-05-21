@@ -1,17 +1,16 @@
 package se.ugli.jocote;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import se.ugli.jocote.support.JocoteUrl;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public final class Jocote {
 
-import se.ugli.jocote.support.JocoteUrl;
-
-public final class DriverManager {
-
-    private final static Logger logger = LoggerFactory.getLogger(DriverManager.class);
+    private final static Logger logger = LoggerFactory.getLogger(Jocote.class);
     private static final Map<String, Driver> drivers = new ConcurrentHashMap<>();
 
     static {
@@ -66,7 +65,8 @@ public final class DriverManager {
         return result;
     }
 
-    private DriverManager() {
+    private Jocote() {
     }
+
 
 }

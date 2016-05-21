@@ -1,15 +1,14 @@
 package se.ugli.jocote.activemq;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-import static se.ugli.jocote.DriverManager.connect;
+import org.junit.Test;
+import se.ugli.jocote.Connection;
+import se.ugli.jocote.Message;
 
 import java.util.Optional;
 
-import org.junit.Test;
-
-import se.ugli.jocote.Connection;
-import se.ugli.jocote.Message;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static se.ugli.jocote.Jocote.connect;
 
 public class ActiveMqDriverTest {
 

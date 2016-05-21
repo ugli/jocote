@@ -1,6 +1,9 @@
 package se.ugli.jocote;
 
-public interface SessionAware {
+public interface SessionAware extends AutoCloseable {
+
+    @Override
+    void close();
 
     void ack();
 

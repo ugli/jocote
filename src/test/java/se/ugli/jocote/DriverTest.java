@@ -13,7 +13,6 @@ import java.util.Optional;
 
 import static java.lang.Integer.parseInt;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
@@ -37,10 +36,10 @@ public class DriverTest {
 
     @Before
     public void clearQueue() {
-        try (Connection c = DriverManager.connect(url)) {
+        try (Connection c = Jocote.connect(url)) {
             c.clear();
         }
-        connection = DriverManager.connect(url);
+        connection = Jocote.connect(url);
     }
 
     @After
@@ -125,7 +124,7 @@ public class DriverTest {
             connection.put("hej".getBytes());
             connection.get(session -> Optional.of(session.message()));
         } catch (final JocoteException e) {
-            assertThat(e.getMessage(), equalTo("You have to acknowledge or leave message"));
+            assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));
         }
     }
 
@@ -144,17 +143,6 @@ public class DriverTest {
         try (SessionStream stream = connection.sessionStream()) {
             assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
             stream.ack();
-        }
-    }
-
-    @Test
-    public void shouldLimitSessionStream() {
-        for (int i = 0; i <= 100; i++)
-            connection.put(String.valueOf(i).getBytes());
-        try (SessionStream stream = connection.sessionStream()) {
-            assertThat(stream.limit(10).mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
-            stream.ack();
-            assertThat(stream.elementIndex(), is(10));
         }
     }
 
@@ -194,7 +182,7 @@ public class DriverTest {
             connection.put(String.valueOf(i).getBytes());
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
-        final Subscription subscription = DriverManager.subscribe(url, (msg) -> {
+        final Subscription subscription = Jocote.subscribe(url, (msg) -> {
             final byte[] next = msg.body();
             count.i++;
             sum.i += parseInt(new String(next));
@@ -210,7 +198,7 @@ public class DriverTest {
     public void shouldGetValuesAfterSubscribe() throws InterruptedException {
         final IntWrap sum = new IntWrap();
         final IntWrap count = new IntWrap();
-        final Subscription subscription = DriverManager.subscribe(url, (msg) -> {
+        final Subscription subscription = Jocote.subscribe(url, (msg) -> {
             final byte[] next = msg.body();
             count.i++;
             sum.i += parseInt(new String(next));

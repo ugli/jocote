@@ -1,9 +1,10 @@
 package se.ugli.jocote;
 
-import static java.util.Collections.unmodifiableMap;
-
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Collections.unmodifiableMap;
 
 public interface Message {
 
@@ -19,7 +20,7 @@ public interface Message {
         return new MessageBuilder();
     }
 
-    public static class MessageBuilder {
+    public class MessageBuilder {
 
         private byte[] body;
         private String id;
@@ -95,6 +96,27 @@ public interface Message {
         @Override
         public byte[] body() {
             return body;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            MessageImpl message = (MessageImpl) o;
+            if (id != null ? !id.equals(message.id) : message.id != null) return false;
+            if (!Arrays.equals(body, message.body)) return false;
+            if (headers != null ? !headers.equals(message.headers) : message.headers != null) return false;
+            return properties != null ? properties.equals(message.properties) : message.properties == null;
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = id != null ? id.hashCode() : 0;
+            result = 31 * result + Arrays.hashCode(body);
+            result = 31 * result + (headers != null ? headers.hashCode() : 0);
+            result = 31 * result + (properties != null ? properties.hashCode() : 0);
+            return result;
         }
 
         @Override

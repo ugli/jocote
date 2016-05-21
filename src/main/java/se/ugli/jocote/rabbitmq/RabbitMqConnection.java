@@ -2,20 +2,12 @@ package se.ugli.jocote.rabbitmq;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.GetResponse;
 import se.ugli.jocote.*;
 import se.ugli.jocote.support.JocoteUrl;
-import se.ugli.jocote.support.Streams;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
 
 public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
@@ -81,55 +73,13 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     }
 
     @Override
-    public Optional<Message> get() {
-        try {
-            final GetResponse basicGet = channel.basicGet(queue, true);
-            if (basicGet != null)
-                return Optional.of(MessageFactory.create(basicGet));
-            return Optional.empty();
-        }
-        catch (final IOException e) {
-            throw new JocoteException(e);
-        }
+    public MessageIterator messageIterator() {
+        return new RabbitMqIterator(channel, queue);
     }
 
     @Override
-    public <T> Optional<T> get(final Function<Session, Optional<T>> sessionFunc) {
-        Channel newChannel = null;
-        try {
-            newChannel = connection.createChannel();
-            newChannel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
-            final GetResponse basicGet = newChannel.basicGet(queue, false);
-            if (basicGet != null) {
-                final RabbitMqSession cxt = new RabbitMqSession(newChannel, basicGet);
-                final Optional<T> result = sessionFunc.apply(cxt);
-                if (cxt.isClosable())
-                    return result;
-                throw new JocoteException("You have to acknowledge or leave message");
-            }
-            return Optional.empty();
-        }
-        catch (final IOException e) {
-            throw new JocoteException(e);
-        }
-        finally {
-            close(newChannel);
-        }
-    }
-
-    @Override
-    public MessageStream messageStream() {
-        return Streams.messageStream(new RabbitMqIterator(channel, queue));
-    }
-
-    @Override
-    public SessionStream sessionStream() {
-        return Streams.sessionStream(new RabbitMqSessionIterator(connection, queue, durable, exclusive, autoDelete, arguments));
-    }
-
-    @Override
-    public void put(final byte[] message) {
-        put(Message.builder().body(message).build());
+    public SessionIterator sessionIterator() {
+        return new RabbitMqSessionIterator(connection, queue, durable, exclusive, autoDelete, arguments);
     }
 
     @Override
@@ -141,13 +91,6 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
         catch (final IOException e) {
             throw new JocoteException(e);
         }
-    }
-
-    @Override
-    public int put(final Stream<Message> messageStream) {
-        final List<Message> messages = messageStream.collect(toList());
-        messages.forEach(this::put);
-        return messages.size();
     }
 
     public com.rabbitmq.client.Connection rabbitConnection() {

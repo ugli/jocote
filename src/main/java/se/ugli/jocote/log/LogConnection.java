@@ -1,26 +1,14 @@
 package se.ugli.jocote.log;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-
-import se.ugli.jocote.Connection;
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.Message;
-import se.ugli.jocote.MessageStream;
-import se.ugli.jocote.Session;
-import se.ugli.jocote.SessionStream;
+import se.ugli.jocote.*;
 import se.ugli.jocote.support.JocoteUrl;
 
-import static java.util.stream.Collectors.toList;
+import java.util.Arrays;
 
-public class LogConnection implements Connection {
+class LogConnection implements Connection {
 
     private final Level level;
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -44,28 +32,13 @@ public class LogConnection implements Connection {
     }
 
     @Override
-    public Optional<Message> get() {
-        throw new UnsupportedOperationException("You can't get log messages.");
+    public MessageIterator messageIterator() {
+        throw new UnsupportedOperationException("You can't iterate log messages.");
     }
 
     @Override
-    public <T> Optional<T> get(final Function<Session, Optional<T>> sessionFunc) {
-        throw new UnsupportedOperationException("You can't get log messages.");
-    }
-
-    @Override
-    public MessageStream messageStream() {
-        throw new UnsupportedOperationException("You can't stream log messages.");
-    }
-
-    @Override
-    public SessionStream sessionStream() {
-        throw new UnsupportedOperationException("You can't stream log messages.");
-    }
-
-    @Override
-    public void put(final byte[] message) {
-        put(Message.builder().body(message).build());
+    public SessionIterator sessionIterator() {
+        throw new UnsupportedOperationException("You can't iterate log messages.");
     }
 
     @Override
@@ -81,13 +54,5 @@ public class LogConnection implements Connection {
         else if (level == Level.TRACE)
             logger.trace("Message: {}", message);
     }
-
-    @Override
-    public int put(final Stream<Message> messageStream) {
-        List<Message> messages = messageStream.collect(toList());
-        messages.forEach(this::put);
-        return messages.size();
-    }
-
 
 }

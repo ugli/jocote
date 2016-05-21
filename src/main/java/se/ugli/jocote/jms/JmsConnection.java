@@ -3,20 +3,11 @@ package se.ugli.jocote.jms;
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.*;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.Session;
 import se.ugli.jocote.support.JocoteUrl;
-import se.ugli.jocote.support.MessageIterator;
-import se.ugli.jocote.support.Streams;
 
 import javax.jms.*;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
 import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
-import static se.ugli.jocote.jms.AcknowledgeMode.CLIENT_ACKNOWLEDGE;
 
 public class JmsConnection extends JmsBase implements Connection {
 
@@ -50,63 +41,18 @@ public class JmsConnection extends JmsBase implements Connection {
 
     @Override
     public void clear() {
-        while (iterator().next().isPresent())
+        while (messageIterator().next().isPresent())
             ;
     }
 
     @Override
-    public Optional<Message> get() {
-        try {
-            final javax.jms.Message message = jmsMessageConsumer().receive(receiveTimeout);
-            if (message != null)
-                return Optional.of(MessageFactory.create(message));
-            return Optional.empty();
-        } catch (final JMSException e) {
-            throw new JocoteException(e);
-        }
-    }
-
-    @Override
-    public <T> Optional<T> get(final Function<Session, Optional<T>> sessionFunc) {
-        javax.jms.Session session = null;
-        MessageConsumer messageConsumer = null;
-        try {
-            session = jmsConnection().createSession(false, CLIENT_ACKNOWLEDGE.mode);
-            messageConsumer = session.createConsumer(destination);
-            final javax.jms.Message message = messageConsumer.receive(receiveTimeout);
-            if (message == null)
-                return Optional.empty();
-            final JmsSession cxt = new JmsSession(message);
-            final Optional<T> result = sessionFunc.apply(cxt);
-            if (cxt.isClosable())
-                return result;
-            throw new JocoteException("You have to acknowledge or leave message");
-        } catch (final JMSException e) {
-            throw new JocoteException(e);
-        } finally {
-            close(messageConsumer);
-            close(session);
-        }
-    }
-
-    private MessageIterator iterator() {
+    public MessageIterator messageIterator() {
         return new JmsIterator(jmsMessageConsumer(), receiveTimeout);
     }
 
     @Override
-    public MessageStream messageStream() {
-        return Streams.messageStream(new JmsIterator(jmsMessageConsumer(), receiveTimeout));
-    }
-
-
-    @Override
-    public SessionStream sessionStream() {
-        return Streams.sessionStream(new JmsSessionIterator(jmsConnection(), destination, receiveTimeout));
-    }
-
-    @Override
-    public void put(final byte[] message) {
-        put(Message.builder().body(message).build());
+    public SessionIterator sessionIterator() {
+        return new JmsSessionIterator(jmsConnection(), destination, receiveTimeout);
     }
 
     @Override
@@ -116,13 +62,6 @@ public class JmsConnection extends JmsBase implements Connection {
         } catch (final JMSException e) {
             throw new JocoteException(e);
         }
-    }
-
-    @Override
-    public int put(final Stream<Message> messageStream) {
-        List<Message> messages = messageStream.collect(toList());
-        messages.forEach(this::put);
-        return messages.size();
     }
 
     public MessageConsumer jmsMessageConsumer() {

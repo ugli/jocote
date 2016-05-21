@@ -1,8 +1,7 @@
 package se.ugli.jocote;
 
-public interface SessionStream extends MessageStream, SessionAware, AutoCloseable {
+import java.util.stream.Stream;
 
-    @Override
-    void close();
+public interface SessionStream extends Stream<Message>, SessionAware {
 
 }

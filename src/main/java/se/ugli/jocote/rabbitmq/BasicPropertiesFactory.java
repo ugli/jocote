@@ -1,18 +1,9 @@
 package se.ugli.jocote.rabbitmq;
 
-import static java.util.stream.Collectors.toMap;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.AppId;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.ClusterId;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.ContentEncoding;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.ContentType;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.CorrelationId;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.DeliveryMode;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.Expiration;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.Priority;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.ReplyTo;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.Timestamp;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.Type;
-import static se.ugli.jocote.rabbitmq.RabbitMqProperties.UserId;
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.AMQP.BasicProperties.Builder;
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,17 +14,14 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.AMQP.BasicProperties.Builder;
-
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.Message;
+import static java.util.stream.Collectors.toMap;
+import static se.ugli.jocote.rabbitmq.RabbitMqProperties.*;
 
 class BasicPropertiesFactory {
 
     private final boolean durable;
 
-    public BasicPropertiesFactory(final boolean durable) {
+    BasicPropertiesFactory(final boolean durable) {
         this.durable = durable;
     }
 

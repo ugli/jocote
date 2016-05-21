@@ -16,7 +16,7 @@ class ClientConnectionFactory {
 
     private final static AtomicInteger threadNumber = new AtomicInteger(1);
 
-    public static Connection create(JocoteUrl url) {
+    static Connection create(JocoteUrl url) {
         try {
             final ConnectionFactory factory = new ConnectionFactory();
             if (url.host != null)
