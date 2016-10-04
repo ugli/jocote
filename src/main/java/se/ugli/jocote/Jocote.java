@@ -23,7 +23,7 @@ public final class Jocote {
         tryToRegister("se.ugli.jocote.ram.RamDriver");
         tryToRegister("se.ugli.jocote.rabbitmq.RabbitMqDriver");
         tryToRegister("se.ugli.jocote.log.LogDriver");
-        tryToRegister("se.ugli.jocote.lpr.LprDriver");
+        tryToRegister("se.ugli.jocote.smtp.SmtpDriver");
     }
 
     private static void tryToRegister(final String driver) {
