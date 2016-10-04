@@ -1,12 +1,15 @@
 package se.ugli.jocote;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import se.ugli.jocote.support.JocoteUrl;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import se.ugli.jocote.support.JocoteProperties;
+import se.ugli.jocote.support.JocoteUrl;
+import se.ugli.jocote.support.TraceLogConnectionProxy;
 
 public final class Jocote {
 
@@ -20,6 +23,7 @@ public final class Jocote {
         tryToRegister("se.ugli.jocote.ram.RamDriver");
         tryToRegister("se.ugli.jocote.rabbitmq.RabbitMqDriver");
         tryToRegister("se.ugli.jocote.log.LogDriver");
+        tryToRegister("se.ugli.jocote.lpr.LprDriver");
     }
 
     private static void tryToRegister(final String driver) {
@@ -34,7 +38,10 @@ public final class Jocote {
 
     public static Connection connect(final String url) {
         final JocoteUrl urlObj = JocoteUrl.apply(url);
-        return driver(urlObj).connect(urlObj);
+        final Connection connection = driver(urlObj).connect(urlObj);
+        if (JocoteProperties.traceLogConnections())
+            return new TraceLogConnectionProxy(connection);
+        return connection;
     }
 
     public static void register(final Driver driver) {
@@ -67,6 +74,5 @@ public final class Jocote {
 
     private Jocote() {
     }
-
 
 }

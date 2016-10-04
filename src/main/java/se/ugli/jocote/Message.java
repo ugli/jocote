@@ -121,7 +121,7 @@ public interface Message {
 
         @Override
         public String toString() {
-            return "MessageImpl [id=" + id + ", headers=" + headers + ", properties=" + properties + ", body=" + new String(body) + "]";
+            return "MessageImpl [id=" + id + ", headers=" + headers + ", properties=" + properties + ", bodySize=" + body.length + "]";
         }
 
     }

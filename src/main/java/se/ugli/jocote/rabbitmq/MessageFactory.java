@@ -25,15 +25,21 @@ class MessageFactory {
         }
         final BasicProperties props = response.getProps();
         final byte[] body = response.getBody();
-        return builder().id(props.getMessageId()).body(body).properties(properties(props)).headers(headers(props)).build();
+        Envelope envelope = response.getEnvelope();
+        return builder().id(props.getMessageId()).body(body).properties(properties(props)).headers(headers(props, envelope)).build();
     }
 
     static Message create(final String consumerTag, final Envelope envelope, final BasicProperties props, final byte[] body) {
-        return builder().id(props.getMessageId()).body(body).properties(properties(props)).headers(headers(props)).build();
+        return builder().id(props.getMessageId()).body(body).properties(properties(props)).headers(headers(props, envelope)).build();
     }
 
-    private static Map<String, Object> headers(final BasicProperties props) {
-        return props.getHeaders().entrySet().stream().collect(toMap(Entry::getKey, MessageFactory::headerValue));
+    private static Map<String, Object> headers(final BasicProperties props, Envelope envelope) {
+        Map<String, Object> result = props.getHeaders().entrySet().stream().collect(toMap(Entry::getKey, MessageFactory::headerValue));
+        result.put("DeliveryTag", envelope.getDeliveryTag());
+        result.put("Exchange", envelope.getExchange());
+        result.put("RoutingKey", envelope.getRoutingKey());
+        result.put("Redeliver", envelope.isRedeliver());
+        return result;
     }
 
     private static Object headerValue(final Entry<String, Object> entry) {

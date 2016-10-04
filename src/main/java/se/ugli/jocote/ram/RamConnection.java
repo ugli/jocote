@@ -1,6 +1,7 @@
 package se.ugli.jocote.ram;
 
 import se.ugli.jocote.*;
+import se.ugli.jocote.support.JocoteUrl;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -13,8 +14,13 @@ import static java.util.UUID.randomUUID;
 
 class RamConnection implements Connection {
 
+    private final JocoteUrl url;
     private final Queue<Message> queue = new ConcurrentLinkedQueue<>();
     private final List<Consumer<Message>> subscribers = new ArrayList<>();
+
+    RamConnection(JocoteUrl url) {
+        this.url = url;
+    }
 
     @Override
     public void close() {
@@ -66,6 +72,11 @@ class RamConnection implements Connection {
         while (!queue.isEmpty())
             randomSubscriber().accept(queue.poll());
         return () -> subscribers.remove(consumer);
+    }
+
+    @Override
+    public String toString() {
+        return url.toString();
     }
 
 }

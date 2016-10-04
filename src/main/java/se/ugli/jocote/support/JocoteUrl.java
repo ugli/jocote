@@ -17,8 +17,10 @@ public class JocoteUrl {
     public final String password;
     public final String queue;
     public final Map<String, String> params;
+    private final String url;
 
     private JocoteUrl(final String url) {
+        this.url = url;
         final URI uri = URI.create(url);
         this.scheme = uri.getScheme();
         if (scheme == null)
@@ -106,20 +108,10 @@ public class JocoteUrl {
         }
     }
 
-    private String passwordToString() {
-        if (password != null) {
-            final StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < password.length(); i++)
-                sb.append("*");
-            return sb.toString();
-        }
-        return null;
-    }
 
     @Override
     public String toString() {
-        return "JocoteUrl [scheme=" + scheme + ", host=" + host + ", port=" + port + ", username=" + username + ", password="
-                + passwordToString() + ", queue=" + queue + ", params=" + params + "]";
+        return url;
     }
 
 }

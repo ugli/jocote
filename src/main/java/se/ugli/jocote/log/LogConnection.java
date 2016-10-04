@@ -10,10 +10,12 @@ import java.util.Arrays;
 
 class LogConnection implements Connection {
 
+    private final JocoteUrl url;
     private final Level level;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     LogConnection(final JocoteUrl url) {
+        this.url = url;
         try {
             this.level = Level.valueOf(url.queue.toUpperCase());
         }
@@ -53,6 +55,11 @@ class LogConnection implements Connection {
             logger.debug("Message: {}", message);
         else if (level == Level.TRACE)
             logger.trace("Message: {}", message);
+    }
+
+    @Override
+    public String toString() {
+        return url.toString();
     }
 
 }

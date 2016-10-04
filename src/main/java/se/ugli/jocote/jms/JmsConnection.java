@@ -13,6 +13,7 @@ public class JmsConnection extends JmsBase implements Connection {
 
     public static final String JMS_MESSAGE_TYPE = "jmsMessageType";
 
+    private final JocoteUrl url;
     private final javax.jms.Connection _connection;
     private final Destination destination;
     private final long receiveTimeout = 10;
@@ -22,6 +23,7 @@ public class JmsConnection extends JmsBase implements Connection {
     private javax.jms.Session _session;
 
     public JmsConnection(final ConnectionFactory connectionFactory, final Destination destination, final JocoteUrl url) {
+        this.url = url;
         this.destination = destination;
         try {
             _connection = connectionFactory.createConnection(url.username, url.password);
@@ -98,4 +100,8 @@ public class JmsConnection extends JmsBase implements Connection {
         return _connection;
     }
 
+    @Override
+    public String toString() {
+        return url.toString();
+    }
 }

@@ -33,7 +33,7 @@ public class RamDriver implements Driver {
     private RamConnection _connection(final JocoteUrl url) {
         RamConnection connection = connections.get(url.queue);
         if (connection == null) {
-            connection = new RamConnection();
+            connection = new RamConnection(url);
             connections.put(url.queue, connection);
         }
         return connection;

@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
+    private final JocoteUrl url;
     private final com.rabbitmq.client.Connection connection;
     private final Channel channel;
     private String queue;
@@ -21,6 +22,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
     RabbitMqConnection(final JocoteUrl url) {
         try {
+            this.url = url;
             connection = ClientConnectionFactory.create(url);
             channel = connection.createChannel();
             queue = url.queue;
@@ -99,6 +101,11 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
     public Channel rabbitChannel() {
         return channel;
+    }
+
+    @Override
+    public String toString() {
+        return url.toString();
     }
 
 
