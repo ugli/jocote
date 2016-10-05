@@ -1,34 +1,35 @@
 package se.ugli.jocote.support;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import se.ugli.jocote.Connection;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.MessageIterator;
 import se.ugli.jocote.SessionIterator;
 
-import java.util.Optional;
-
-public class TraceLogConnectionProxy implements Connection {
+public class DebugLogConnectionProxy implements Connection {
 
     private final Connection connection;
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public TraceLogConnectionProxy(Connection connection) {
+    public DebugLogConnectionProxy(final Connection connection) {
         this.connection = connection;
     }
 
     @Override
     public void close() {
-        if (logger.isTraceEnabled())
-            logger.trace("[{}] close", connection);
+        if (logger.isDebugEnabled())
+            logger.debug("[{}] close", connection);
         connection.close();
     }
 
     @Override
     public void clear() {
-        if (logger.isTraceEnabled())
-            logger.trace("[{}] clear", connection);
+        if (logger.isDebugEnabled())
+            logger.debug("[{}] clear", connection);
         connection.clear();
     }
 
@@ -41,15 +42,15 @@ public class TraceLogConnectionProxy implements Connection {
 
         private final MessageIterator iterator;
 
-        TraceLogMessageIterator(MessageIterator iterator) {
+        TraceLogMessageIterator(final MessageIterator iterator) {
             this.iterator = iterator;
         }
 
         @Override
         public Optional<Message> next() {
-            Optional<Message> next = iterator.next();
-            if (logger.isTraceEnabled())
-                logger.trace("[{}] MessageIterator next: {}", connection, next);
+            final Optional<Message> next = iterator.next();
+            if (logger.isDebugEnabled())
+                logger.debug("[{}] MessageIterator next: {}", connection, next);
             return next;
         }
     }
@@ -63,44 +64,49 @@ public class TraceLogConnectionProxy implements Connection {
 
         private final SessionIterator iterator;
 
-        TraceLogSessionIterator(SessionIterator iterator) {
-            this.iterator =iterator;
+        TraceLogSessionIterator(final SessionIterator iterator) {
+            this.iterator = iterator;
         }
 
         @Override
         public void close() {
-            if (logger.isTraceEnabled())
-                logger.trace("[{}] SessionIterator close", connection);
+            if (logger.isDebugEnabled())
+                logger.debug("[{}][{}] SessionIterator close", connection, sessionid());
             iterator.close();
         }
 
         @Override
         public void ack() {
-            if (logger.isTraceEnabled())
-                logger.trace("[{}] SessionIterator ack", connection);
+            if (logger.isDebugEnabled())
+                logger.debug("[{}][{}] SessionIterator ack", connection, sessionid());
             iterator.ack();
         }
 
         @Override
         public void nack() {
-            if (logger.isTraceEnabled())
-                logger.trace("[{}] SessionIterator ack", connection);
+            if (logger.isDebugEnabled())
+                logger.debug("[{}][{}] SessionIterator ack", connection, sessionid());
             iterator.nack();
         }
 
         @Override
         public Optional<Message> next() {
-            Optional<Message> next = iterator.next();
+            final Optional<Message> next = iterator.next();
             if (logger.isTraceEnabled())
-                logger.trace("[{}] SessionIterator next: {}", connection, next);
+                logger.debug("[{}][{}] SessionIterator next: {}", connection, sessionid());
             return next;
+        }
+
+        @Override
+        public String sessionid() {
+            return iterator.sessionid();
         }
     }
 
     @Override
-    public void put(Message message) {
-        if (logger.isTraceEnabled())
-            logger.trace("[{}] put: {}", connection, message);
+    public void put(final Message message) {
+        if (logger.isDebugEnabled())
+            logger.debug("[{}] put: {}", connection, message);
         connection.put(message);
     }
 }

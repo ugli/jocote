@@ -1,15 +1,18 @@
 package se.ugli.jocote.rabbitmq;
 
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.GetResponse;
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionIterator;
+import static se.ugli.jocote.support.Id.newId;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.GetResponse;
+
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
+import se.ugli.jocote.SessionIterator;
 
 class RabbitMqSessionIterator extends RabbitMqBase implements SessionIterator {
 
@@ -17,6 +20,7 @@ class RabbitMqSessionIterator extends RabbitMqBase implements SessionIterator {
     private Channel channel;
     private boolean closable;
     private GetResponse lastMessage;
+    private String sessionid;
 
     RabbitMqSessionIterator(final Connection connection, final String queue, final boolean durable, final boolean exclusive,
             final boolean autoDelete, final Map<String, Object> arguments) {
@@ -24,6 +28,7 @@ class RabbitMqSessionIterator extends RabbitMqBase implements SessionIterator {
             this.queue = queue;
             this.channel = connection.createChannel();
             this.channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            sessionid = newId();
         }
         catch (final IOException e) {
             throw new JocoteException(e);
@@ -83,6 +88,11 @@ class RabbitMqSessionIterator extends RabbitMqBase implements SessionIterator {
         finally {
             closable = true;
         }
+    }
+
+    @Override
+    public String sessionid() {
+        return sessionid;
     }
 
 }

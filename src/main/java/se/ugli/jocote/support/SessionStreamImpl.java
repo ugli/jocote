@@ -1,15 +1,29 @@
 package se.ugli.jocote.support;
 
-import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionIterator;
-import se.ugli.jocote.SessionStream;
-
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Spliterator;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
+import java.util.stream.Collector;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+
+import se.ugli.jocote.Message;
+import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.SessionStream;
 
 class SessionStreamImpl implements SessionStream, Stream<Message> {
 
@@ -230,6 +244,11 @@ class SessionStreamImpl implements SessionStream, Stream<Message> {
     @Override
     public void nack() {
         iterator.nack();
+    }
+
+    @Override
+    public String sessionid() {
+        return iterator.sessionid();
     }
 
 }

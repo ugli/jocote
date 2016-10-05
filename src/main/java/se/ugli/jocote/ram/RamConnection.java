@@ -1,7 +1,6 @@
 package se.ugli.jocote.ram;
 
-import se.ugli.jocote.*;
-import se.ugli.jocote.support.JocoteUrl;
+import static java.util.UUID.randomUUID;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -10,7 +9,12 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
-import static java.util.UUID.randomUUID;
+import se.ugli.jocote.Connection;
+import se.ugli.jocote.Message;
+import se.ugli.jocote.MessageIterator;
+import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.Subscription;
+import se.ugli.jocote.support.JocoteUrl;
 
 class RamConnection implements Connection {
 
@@ -18,7 +22,7 @@ class RamConnection implements Connection {
     private final Queue<Message> queue = new ConcurrentLinkedQueue<>();
     private final List<Consumer<Message>> subscribers = new ArrayList<>();
 
-    RamConnection(JocoteUrl url) {
+    RamConnection(final JocoteUrl url) {
         this.url = url;
     }
 
@@ -31,7 +35,6 @@ class RamConnection implements Connection {
         queue.clear();
     }
 
-
     @Override
     public MessageIterator messageIterator() {
         return new RamIterator(queue);
@@ -40,11 +43,6 @@ class RamConnection implements Connection {
     @Override
     public SessionIterator sessionIterator() {
         return new RamSessionIterator(queue);
-    }
-
-    @Override
-    public void put(final byte[] message) {
-        put(Message.builder().id(randomUUID().toString()).body(message).build());
     }
 
     @Override

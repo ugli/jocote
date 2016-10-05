@@ -1,21 +1,25 @@
 package se.ugli.jocote.ram;
 
-import se.ugli.jocote.JocoteException;
-import se.ugli.jocote.Message;
-import se.ugli.jocote.SessionIterator;
+import static se.ugli.jocote.support.Id.newId;
 
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
+import se.ugli.jocote.SessionIterator;
 
 class RamSessionIterator implements SessionIterator {
 
     private Queue<Message> backoutQueue = new ConcurrentLinkedQueue<>();
     private boolean closable;
     private final Queue<Message> connectionQueue;
+    private final String sessionid;
 
     RamSessionIterator(final Queue<Message> connectionQueue) {
         this.connectionQueue = connectionQueue;
+        sessionid = newId();
     }
 
     @Override
@@ -43,6 +47,11 @@ class RamSessionIterator implements SessionIterator {
         for (final Message message : backoutQueue)
             connectionQueue.offer(message);
         closable = true;
+    }
+
+    @Override
+    public String sessionid() {
+        return sessionid;
     }
 
 }

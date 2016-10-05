@@ -8,4 +8,7 @@ public interface SessionAware extends AutoCloseable {
     void ack();
 
     void nack();
+
+    String sessionid();
+
 }

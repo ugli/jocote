@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import se.ugli.jocote.support.JocoteProperties;
 import se.ugli.jocote.support.JocoteUrl;
-import se.ugli.jocote.support.TraceLogConnectionProxy;
+import se.ugli.jocote.support.DebugLogConnectionProxy;
 
 public final class Jocote {
 
@@ -39,8 +39,8 @@ public final class Jocote {
     public static Connection connect(final String url) {
         final JocoteUrl urlObj = JocoteUrl.apply(url);
         final Connection connection = driver(urlObj).connect(urlObj);
-        if (JocoteProperties.traceLogConnections())
-            return new TraceLogConnectionProxy(connection);
+        if (JocoteProperties.debugLogConnections())
+            return new DebugLogConnectionProxy(connection);
         return connection;
     }
 

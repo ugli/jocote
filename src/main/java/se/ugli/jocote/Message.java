@@ -1,10 +1,11 @@
 package se.ugli.jocote;
 
+import static java.util.Collections.unmodifiableMap;
+import static se.ugli.jocote.support.Id.newId;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import static java.util.Collections.unmodifiableMap;
 
 public interface Message {
 
@@ -23,12 +24,13 @@ public interface Message {
     public class MessageBuilder {
 
         private byte[] body;
-        private String id;
+        private String id = newId();
         private final Map<String, Object> headers = new HashMap<>();
         private final Map<String, Object> properties = new HashMap<>();
 
         public MessageBuilder id(final String id) {
-            this.id = id;
+            if (id != null)
+                this.id = id;
             return this;
         }
 
@@ -99,13 +101,18 @@ public interface Message {
         }
 
         @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            MessageImpl message = (MessageImpl) o;
-            if (id != null ? !id.equals(message.id) : message.id != null) return false;
-            if (!Arrays.equals(body, message.body)) return false;
-            if (headers != null ? !headers.equals(message.headers) : message.headers != null) return false;
+        public boolean equals(final Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            final MessageImpl message = (MessageImpl) o;
+            if (id != null ? !id.equals(message.id) : message.id != null)
+                return false;
+            if (!Arrays.equals(body, message.body))
+                return false;
+            if (headers != null ? !headers.equals(message.headers) : message.headers != null)
+                return false;
             return properties != null ? properties.equals(message.properties) : message.properties == null;
 
         }
