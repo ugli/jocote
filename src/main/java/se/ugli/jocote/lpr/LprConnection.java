@@ -9,14 +9,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import se.ugli.jocote.Connection;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.MessageIterator;
-import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.support.GetNotSupportedConnection;
 import se.ugli.jocote.support.JocoteUrl;
 
-class LprConnection implements Connection {
+class LprConnection extends GetNotSupportedConnection {
 
     private final JocoteUrl url;
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -77,21 +75,6 @@ class LprConnection implements Connection {
         catch (final RuntimeException | IOException e) {
             logger.warn("Couldn't close connection: " + e.getMessage());
         }
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException("You can't clear print messages.");
-    }
-
-    @Override
-    public MessageIterator messageIterator() {
-        throw new UnsupportedOperationException("You can't iterate print messages.");
-    }
-
-    @Override
-    public SessionIterator sessionIterator() {
-        throw new UnsupportedOperationException("You can't iterate print messages.");
     }
 
     @Override

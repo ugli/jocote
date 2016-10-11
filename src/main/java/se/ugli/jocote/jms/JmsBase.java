@@ -1,9 +1,14 @@
 package se.ugli.jocote.jms;
 
+import javax.jms.Connection;
+import javax.jms.JMSException;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.QueueBrowser;
+import javax.jms.Session;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.jms.*;
 
 class JmsBase {
 
@@ -28,6 +33,16 @@ class JmsBase {
         }
         catch (final RuntimeException | JMSException e) {
             logger.warn("Couldn't close message consumer: " + e.getMessage());
+        }
+    }
+
+    protected void close(final QueueBrowser queueBrowser) {
+        try {
+            if (queueBrowser != null)
+                queueBrowser.close();
+        }
+        catch (final RuntimeException | JMSException e) {
+            logger.warn("Couldn't close queueBrowser: " + e.getMessage());
         }
     }
 

@@ -36,6 +36,11 @@ class RamConnection implements Connection {
     }
 
     @Override
+    public long messageCount() {
+        return queue.size();
+    }
+
+    @Override
     public MessageIterator messageIterator() {
         return new RamIterator(queue);
     }

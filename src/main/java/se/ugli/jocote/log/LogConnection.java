@@ -1,14 +1,17 @@
 package se.ugli.jocote.log;
 
+import java.util.Arrays;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import se.ugli.jocote.*;
+
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
+import se.ugli.jocote.support.GetNotSupportedConnection;
 import se.ugli.jocote.support.JocoteUrl;
 
-import java.util.Arrays;
-
-class LogConnection implements Connection {
+class LogConnection extends GetNotSupportedConnection {
 
     private final JocoteUrl url;
     private final Level level;
@@ -26,21 +29,6 @@ class LogConnection implements Connection {
 
     @Override
     public void close() {
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException("You can't clear log messages.");
-    }
-
-    @Override
-    public MessageIterator messageIterator() {
-        throw new UnsupportedOperationException("You can't iterate log messages.");
-    }
-
-    @Override
-    public SessionIterator sessionIterator() {
-        throw new UnsupportedOperationException("You can't iterate log messages.");
     }
 
     @Override

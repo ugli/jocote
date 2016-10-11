@@ -1,13 +1,18 @@
 package se.ugli.jocote.rabbitmq;
 
-import com.rabbitmq.client.AMQP.BasicProperties;
-import com.rabbitmq.client.Channel;
-import se.ugli.jocote.*;
-import se.ugli.jocote.support.JocoteUrl;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Channel;
+
+import se.ugli.jocote.Connection;
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
+import se.ugli.jocote.MessageIterator;
+import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.support.JocoteUrl;
 
 public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
@@ -75,6 +80,16 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     }
 
     @Override
+    public long messageCount() {
+        try {
+            return channel.messageCount(queue);
+        }
+        catch (final IOException e) {
+            throw new JocoteException(e);
+        }
+    }
+
+    @Override
     public MessageIterator messageIterator() {
         return new RabbitMqIterator(channel, queue);
     }
@@ -107,6 +122,5 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     public String toString() {
         return url.toString();
     }
-
 
 }

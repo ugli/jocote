@@ -8,14 +8,12 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import se.ugli.jocote.Connection;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
-import se.ugli.jocote.MessageIterator;
-import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.support.GetNotSupportedConnection;
 import se.ugli.jocote.support.JocoteUrl;
 
-public class SmtpConnection implements Connection {
+public class SmtpConnection extends GetNotSupportedConnection {
 
     private final JocoteUrl url;
     private final Session session;
@@ -31,21 +29,6 @@ public class SmtpConnection implements Connection {
 
     @Override
     public void close() {
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException("You can't clear smtp messages.");
-    }
-
-    @Override
-    public MessageIterator messageIterator() {
-        throw new UnsupportedOperationException("You can't iterate smtp messages.");
-    }
-
-    @Override
-    public SessionIterator sessionIterator() {
-        throw new UnsupportedOperationException("You can't iterate smtp messages.");
     }
 
     @Override

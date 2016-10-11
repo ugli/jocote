@@ -34,6 +34,13 @@ public class DebugLogConnectionProxy implements Connection {
     }
 
     @Override
+    public long messageCount() {
+        if (logger.isDebugEnabled())
+            logger.debug("[{}] messageCount", connection);
+        return connection.messageCount();
+    }
+
+    @Override
     public MessageIterator messageIterator() {
         return new TraceLogMessageIterator(connection.messageIterator());
     }

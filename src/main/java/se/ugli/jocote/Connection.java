@@ -1,11 +1,11 @@
 package se.ugli.jocote;
 
-import se.ugli.jocote.support.Streams;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import se.ugli.jocote.support.Streams;
 
 public interface Connection extends AutoCloseable {
 
@@ -13,6 +13,8 @@ public interface Connection extends AutoCloseable {
     void close();
 
     void clear();
+
+    long messageCount();
 
     MessageIterator messageIterator();
 
@@ -37,7 +39,7 @@ public interface Connection extends AutoCloseable {
     }
 
     default int put(final Stream<Message> messageStream) {
-        List<Boolean> counter = new ArrayList<>();
+        final List<Boolean> counter = new ArrayList<>();
         messageStream.forEach(m -> {
             put(m);
             counter.add(true);

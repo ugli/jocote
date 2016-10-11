@@ -1,21 +1,22 @@
 package se.ugli.jocote;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import se.ugli.jocote.rabbitmq.RabbitMqProperties;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
-
 import static java.lang.Integer.parseInt;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import se.ugli.jocote.rabbitmq.RabbitMqProperties;
 
 @RunWith(Parameterized.class)
 public class DriverTest {
@@ -23,6 +24,7 @@ public class DriverTest {
     private final String url;
     private final String testName;
     private Connection connection;
+
     public DriverTest(final String testName, final String url) {
         this.testName = testName;
         this.url = url;
@@ -31,7 +33,7 @@ public class DriverTest {
     @SuppressWarnings("rawtypes")
     @Parameterized.Parameters(name = "{0}")
     public static Collection testArray() {
-        return Arrays.asList(new Object[][]{{"ActiveMQ", "activemq:/APA"}, {"RAM", "ram:/APA"}, {"RabbitMQ", "rabbitmq:/APA"}});
+        return Arrays.asList(new Object[][] { { "ActiveMQ", "activemq:/APA" }, { "RAM", "ram:/APA" }, { "RabbitMQ", "rabbitmq:/APA" } });
     }
 
     @Before
@@ -99,6 +101,16 @@ public class DriverTest {
     }
 
     @Test
+    public void shouldCountMessages() throws InterruptedException {
+        for (int i = 1; i <= 100; i++)
+            connection.put(String.valueOf(i).getBytes());
+        Thread.sleep(50);
+        assertThat(connection.messageCount(), equalTo(100L));
+        assertThat(connection.messageCount(), equalTo(100L));
+        assertThat(connection.get().isPresent(), equalTo(true));
+    }
+
+    @Test
     public void shouldConsumeStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
@@ -141,7 +153,8 @@ public class DriverTest {
             connection.put(String.valueOf(i).getBytes());
         try (SessionStream stream = connection.sessionStream()) {
             assertThat(stream.mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5050));
-        } catch (final JocoteException e) {
+        }
+        catch (final JocoteException e) {
             assertThat(e.getMessage(), equalTo("You have to acknowledge or leave messages before closing"));
         }
     }
