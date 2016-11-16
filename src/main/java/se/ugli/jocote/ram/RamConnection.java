@@ -31,8 +31,10 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public void clear() {
+    public long clear() {
+        final int size = queue.size();
         queue.clear();
+        return size;
     }
 
     @Override

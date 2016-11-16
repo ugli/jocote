@@ -33,7 +33,8 @@ public class DriverTest {
     @SuppressWarnings("rawtypes")
     @Parameterized.Parameters(name = "{0}")
     public static Collection testArray() {
-        return Arrays.asList(new Object[][] { { "ActiveMQ", "activemq:/APA" }, { "RAM", "ram:/APA" }, { "RabbitMQ", "rabbitmq:/APA" } });
+        return Arrays.asList(new Object[][] { { "ActiveMQ", "activemq:/APA" }, { "RAM", "ram:/APA" },
+                { "RabbitMQ", "rabbitmq:/APA" } });
     }
 
     @Before
@@ -89,7 +90,8 @@ public class DriverTest {
     @Test
     public void shouldGetRabbitMqCorrelationId() {
         assumeTrue(testName.equals("RabbitMQ"));
-        connection.put(Message.builder().body("hej".getBytes()).property(RabbitMqProperties.CorrelationId, "B").build());
+        connection
+                .put(Message.builder().body("hej".getBytes()).property(RabbitMqProperties.CorrelationId, "B").build());
         assertThat(connection.get().get().properties().get(RabbitMqProperties.CorrelationId.name()), equalTo("B"));
     }
 
@@ -102,11 +104,11 @@ public class DriverTest {
 
     @Test
     public void shouldCountMessages() throws InterruptedException {
-        for (int i = 1; i <= 100; i++)
+        for (int i = 1; i <= 4500; i++)
             connection.put(String.valueOf(i).getBytes());
-        Thread.sleep(50);
-        assertThat(connection.messageCount(), equalTo(100L));
-        assertThat(connection.messageCount(), equalTo(100L));
+        Thread.sleep(100);
+        assertThat(connection.messageCount(), equalTo(4500L));
+        assertThat(connection.messageCount(), equalTo(4500L));
         assertThat(connection.get().isPresent(), equalTo(true));
     }
 
@@ -132,7 +134,8 @@ public class DriverTest {
     public void shouldLimitMessageStream() {
         for (int i = 0; i <= 100; i++)
             connection.put(String.valueOf(i).getBytes());
-        assertThat(connection.messageStream().limit(10).mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(45));
+        assertThat(connection.messageStream().limit(10).mapToInt(m -> parseInt(new String(m.body()))).sum(),
+                equalTo(45));
         assertThat(connection.messageStream().mapToInt(m -> parseInt(new String(m.body()))).sum(), equalTo(5005));
     }
 

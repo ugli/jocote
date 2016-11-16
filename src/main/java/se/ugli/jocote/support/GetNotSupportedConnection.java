@@ -7,7 +7,7 @@ import se.ugli.jocote.SessionIterator;
 public abstract class GetNotSupportedConnection implements Connection {
 
     @Override
-    public final void clear() {
+    public final long clear() {
         throw new UnsupportedOperationException("clear not supported by a" + getClass().getName());
     }
 

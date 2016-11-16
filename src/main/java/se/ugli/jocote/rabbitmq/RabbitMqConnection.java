@@ -19,16 +19,18 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     private final JocoteUrl url;
     private final com.rabbitmq.client.Connection connection;
     private final Channel channel;
-    private String queue;
-    private boolean durable;
-    private boolean exclusive;
-    private boolean autoDelete;
-    private Map<String, Object> arguments;
+    private final String queue;
+    private final boolean durable;
+    private final boolean exclusive;
+    private final boolean autoDelete;
+    private final boolean automaticRecoveryEnabled;
+    private final Map<String, Object> arguments;
 
     RabbitMqConnection(final JocoteUrl url) {
         try {
             this.url = url;
-            connection = ClientConnectionFactory.create(url);
+            automaticRecoveryEnabled = automaticRecoveryEnabled(url);
+            connection = ClientConnectionFactory.create(url, automaticRecoveryEnabled);
             channel = connection.createChannel();
             queue = url.queue;
             durable = durable(url);
@@ -47,6 +49,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
         result.remove("durable");
         result.remove("exclusive");
         result.remove("autoDelete");
+        result.remove("automaticRecoveryEnabled");
         return result;
     }
 
@@ -63,6 +66,12 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
         return durable == null || "true".equals(durable);
     }
 
+    private boolean automaticRecoveryEnabled(final JocoteUrl url) {
+        final String automaticRecoveryEnabled = url.params.get("automaticRecoveryEnabled");
+        return automaticRecoveryEnabled == null || "true".equals(automaticRecoveryEnabled);
+
+    }
+
     @Override
     public void close() {
         close(channel);
@@ -70,9 +79,9 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     }
 
     @Override
-    public void clear() {
+    public long clear() {
         try {
-            channel.queuePurge(queue);
+            return channel.queuePurge(queue).getMessageCount();
         }
         catch (final IOException e) {
             throw new JocoteException(e);

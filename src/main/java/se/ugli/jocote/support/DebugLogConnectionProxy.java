@@ -27,10 +27,10 @@ public class DebugLogConnectionProxy implements Connection {
     }
 
     @Override
-    public void clear() {
+    public long clear() {
         if (logger.isDebugEnabled())
             logger.debug("[{}] clear", connection);
-        connection.clear();
+        return connection.clear();
     }
 
     @Override

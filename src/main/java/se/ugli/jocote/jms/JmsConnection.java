@@ -65,9 +65,11 @@ public class JmsConnection extends JmsBase implements Connection {
     }
 
     @Override
-    public void clear() {
+    public long clear() {
+        long size = 0;
         while (messageIterator().next().isPresent())
-            ;
+            size++;
+        return size;
     }
 
     @Override

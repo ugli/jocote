@@ -12,7 +12,7 @@ public interface Connection extends AutoCloseable {
     @Override
     void close();
 
-    void clear();
+    long clear();
 
     long messageCount();
 
