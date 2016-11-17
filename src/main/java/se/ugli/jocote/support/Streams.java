@@ -12,7 +12,7 @@ import static java.util.stream.StreamSupport.stream;
 public final class Streams {
 
     public static Stream<Message> messageStream(final MessageIterator iterator) {
-        return stream(new SpliteratorImpl(iterator), false);
+        return stream(new MessageSpliterator(iterator), false);
     }
 
     public static SessionStream sessionStream(final SessionIterator iterator) {

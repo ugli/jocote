@@ -25,7 +25,7 @@ import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.SessionStream;
 
-class SessionStreamImpl implements SessionStream, Stream<Message> {
+class SessionStreamImpl implements SessionStream {
 
     private final SessionIterator iterator;
     private final Stream<Message> stream;
@@ -141,12 +141,14 @@ class SessionStreamImpl implements SessionStream, Stream<Message> {
     }
 
     @Override
-    public <U> U reduce(final U identity, final BiFunction<U, ? super Message, U> accumulator, final BinaryOperator<U> combiner) {
+    public <U> U reduce(final U identity, final BiFunction<U, ? super Message, U> accumulator,
+            final BinaryOperator<U> combiner) {
         return stream.reduce(identity, accumulator, combiner);
     }
 
     @Override
-    public <R> R collect(final Supplier<R> supplier, final BiConsumer<R, ? super Message> accumulator, final BiConsumer<R, R> combiner) {
+    public <R> R collect(final Supplier<R> supplier, final BiConsumer<R, ? super Message> accumulator,
+            final BiConsumer<R, R> combiner) {
         return stream.collect(supplier, accumulator, combiner);
     }
 

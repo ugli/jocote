@@ -106,7 +106,7 @@ public class DriverTest {
     public void shouldCountMessages() throws InterruptedException {
         for (int i = 1; i <= 4500; i++)
             connection.put(String.valueOf(i).getBytes());
-        Thread.sleep(100);
+        Thread.sleep(200);
         assertThat(connection.messageCount(), equalTo(4500L));
         assertThat(connection.messageCount(), equalTo(4500L));
         assertThat(connection.get().isPresent(), equalTo(true));
