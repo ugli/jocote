@@ -24,6 +24,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     private final boolean exclusive;
     private final boolean autoDelete;
     private final boolean automaticRecoveryEnabled;
+    private final Integer sessionIteratorChannelCloseDelayMs;
     private final Map<String, Object> arguments;
 
     RabbitMqConnection(final JocoteUrl url) {
@@ -36,6 +37,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
             durable = durable(url);
             exclusive = exclusive(url);
             autoDelete = autoDelete(url);
+            sessionIteratorChannelCloseDelayMs = sessionIteratorChannelCloseDelayMs(url);
             arguments = arguments(url);
             channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
         }
@@ -44,29 +46,37 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
         }
     }
 
-    private Map<String, Object> arguments(final JocoteUrl url) {
+    private static Integer sessionIteratorChannelCloseDelayMs(final JocoteUrl url) {
+        final String param = url.params.get("sessionIteratorChannelCloseDelayMs");
+        if (param != null)
+            return Integer.parseInt(param);
+        return null;
+    }
+
+    private static Map<String, Object> arguments(final JocoteUrl url) {
         final HashMap<String, Object> result = new HashMap<>(url.params);
         result.remove("durable");
         result.remove("exclusive");
         result.remove("autoDelete");
         result.remove("automaticRecoveryEnabled");
+        result.remove("sessionIteratorChannelCloseDelayMs");
         return result;
     }
 
-    private boolean autoDelete(final JocoteUrl url) {
+    private static boolean autoDelete(final JocoteUrl url) {
         return "true".equals(url.params.get("autoDelete"));
     }
 
-    private boolean exclusive(final JocoteUrl url) {
+    private static boolean exclusive(final JocoteUrl url) {
         return "true".equals(url.params.get("exclusive"));
     }
 
-    private boolean durable(final JocoteUrl url) {
+    private static boolean durable(final JocoteUrl url) {
         final String durable = url.params.get("durable");
         return durable == null || "true".equals(durable);
     }
 
-    private boolean automaticRecoveryEnabled(final JocoteUrl url) {
+    private static boolean automaticRecoveryEnabled(final JocoteUrl url) {
         final String automaticRecoveryEnabled = url.params.get("automaticRecoveryEnabled");
         return automaticRecoveryEnabled == null || "true".equals(automaticRecoveryEnabled);
 
@@ -105,7 +115,8 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
 
     @Override
     public SessionIterator sessionIterator() {
-        return new RabbitMqSessionIterator(connection, queue, durable, exclusive, autoDelete, arguments);
+        return new RabbitMqSessionIterator(connection, queue, durable, exclusive, autoDelete,
+                sessionIteratorChannelCloseDelayMs, arguments);
     }
 
     @Override

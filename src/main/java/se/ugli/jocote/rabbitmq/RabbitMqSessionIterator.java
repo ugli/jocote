@@ -13,21 +13,30 @@ import com.rabbitmq.client.GetResponse;
 import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.SessionIterator;
+import se.ugli.jocote.support.JocoteProperties;
 
 class RabbitMqSessionIterator extends RabbitMqBase implements SessionIterator {
 
     private final String queue;
-    private Channel channel;
+    private final Channel channel;
+    private final String sessionid;
+    private final Integer sessionIteratorChannelCloseDelayMs;
+
     private boolean closable;
     private GetResponse lastMessage;
-    private String sessionid;
 
-    RabbitMqSessionIterator(final Connection connection, final String queue, final boolean durable, final boolean exclusive,
-            final boolean autoDelete, final Map<String, Object> arguments) {
+    RabbitMqSessionIterator(final Connection connection, final String queue, final boolean durable,
+            final boolean exclusive, final boolean autoDelete, final Integer sessionIteratorChannelCloseDelayMs,
+            final Map<String, Object> arguments) {
         try {
+            if (sessionIteratorChannelCloseDelayMs != null)
+                this.sessionIteratorChannelCloseDelayMs = sessionIteratorChannelCloseDelayMs;
+            else
+                this.sessionIteratorChannelCloseDelayMs = JocoteProperties.rabbitmqSessionIteratorChannelCloseDelayMs()
+                        .orElse(null);
             this.queue = queue;
-            this.channel = connection.createChannel();
-            this.channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
+            channel = connection.createChannel();
+            channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
             sessionid = newId();
         }
         catch (final IOException e) {
@@ -50,9 +59,11 @@ class RabbitMqSessionIterator extends RabbitMqBase implements SessionIterator {
 
     @Override
     public void close() {
-        close(channel);
-        if (!closable)
+        if (!closable) {
+            close(channel);
             throw new JocoteException("You have to acknowledge or leave messages before closing");
+        }
+        close(channel, sessionIteratorChannelCloseDelayMs);
     }
 
     @Override
