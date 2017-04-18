@@ -7,9 +7,9 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import se.ugli.jocote.support.DebugLogConnectionProxy;
 import se.ugli.jocote.support.JocoteProperties;
 import se.ugli.jocote.support.JocoteUrl;
-import se.ugli.jocote.support.DebugLogConnectionProxy;
 
 public final class Jocote {
 
@@ -55,7 +55,8 @@ public final class Jocote {
         try {
             register((Driver) Class.forName(driver).newInstance());
         }
-        catch (final InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+        catch (final InstantiationException | IllegalAccessException | ClassNotFoundException
+                | NoClassDefFoundError e) {
             throw new JocoteException(e);
         }
     }
