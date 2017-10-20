@@ -1,7 +1,9 @@
 package se.ugli.jocote;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Flow.Publisher;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -10,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import se.ugli.jocote.support.DebugLogConnectionProxy;
 import se.ugli.jocote.support.JocoteProperties;
 import se.ugli.jocote.support.JocoteUrl;
+import se.ugli.jocote.support.MessagePublisher;
 
 public final class Jocote {
 
@@ -30,8 +33,7 @@ public final class Jocote {
         try {
             register(driver);
             logger.info("Driver {} registered.", driver);
-        }
-        catch (final JocoteException e) {
+        } catch (final JocoteException e) {
             logger.error("Driver {} not registered: {}", driver, e.getMessage());
         }
     }
@@ -39,24 +41,25 @@ public final class Jocote {
     public static Connection connect(final String url) {
         final JocoteUrl urlObj = JocoteUrl.apply(url);
         final Connection connection = driver(urlObj).connect(urlObj);
-        if (JocoteProperties.debugLogConnections())
+        if (JocoteProperties.debugLogConnections()) {
             return new DebugLogConnectionProxy(connection);
+        }
         return connection;
     }
 
     public static void register(final Driver driver) {
         final String urlScheme = driver.urlScheme();
-        if (urlScheme == null)
+        if (urlScheme == null) {
             throw new JocoteException("Driver must define url scheme");
+        }
         drivers.put(urlScheme, driver);
     }
 
     public static void register(final String driver) {
         try {
-            register((Driver) Class.forName(driver).newInstance());
-        }
-        catch (final InstantiationException | IllegalAccessException | ClassNotFoundException
-                | NoClassDefFoundError e) {
+            register((Driver) Class.forName(driver).getDeclaredConstructor().newInstance());
+        } catch (final NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                | IllegalArgumentException | InvocationTargetException | ClassNotFoundException e) {
             throw new JocoteException(e);
         }
     }
@@ -66,10 +69,15 @@ public final class Jocote {
         return driver(urlObj).subscribe(urlObj, consumer);
     }
 
+    public static Publisher<Message> publisher(final String url) {
+        return new MessagePublisher(connect(url));
+    }
+
     private static Driver driver(final JocoteUrl url) {
         final Driver result = drivers.get(url.scheme);
-        if (result == null)
+        if (result == null) {
             throw new JocoteException("No suitable driver for url: " + url);
+        }
         return result;
     }
 
