@@ -5,7 +5,7 @@
   <artifactId>jocote</artifactId>
   <packaging>jar</packaging>
   <name>Jocote</name>
-  <version>1.8.4.8</version>
+  <version>1.9.0.0</version>
   <description>jocote</description>
   <url>https://github.com/ugli/jocote</url>
   <licenses>
@@ -127,8 +127,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.0.2</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>1.9</source>
+          <target>1.9</target>
           <encoding>UTF8</encoding>
         </configuration>
       </plugin>
