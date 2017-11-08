@@ -10,15 +10,15 @@ import se.ugli.jocote.Connection;
 
 class PooledConnectionFactory extends BasePooledObjectFactory<Connection> {
 
-    private final Supplier<Connection> connectionSupplier;
+    private final Supplier<Connection> connectionFactory;
 
-    PooledConnectionFactory(Supplier<Connection> connectionSupplier) {
-        this.connectionSupplier = connectionSupplier;
+    PooledConnectionFactory(Supplier<Connection> connectionFactory) {
+        this.connectionFactory = connectionFactory;
     }
 
     @Override
     public Connection create() {
-        return connectionSupplier.get();
+        return connectionFactory.get();
     }
 
     @Override

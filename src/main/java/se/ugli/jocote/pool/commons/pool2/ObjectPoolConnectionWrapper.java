@@ -11,16 +11,14 @@ import se.ugli.jocote.support.ConnectionWrapper;
 class ObjectPoolConnectionWrapper extends ConnectionWrapper {
 
     static final Logger LOG = LoggerFactory.getLogger(ObjectPoolConnectionWrapper.class);
+
     final ObjectPool<Connection> pool;
+    final Connection connection;
 
     ObjectPoolConnectionWrapper(ObjectPool<Connection> pool) {
-        super(uncheckedBorrow(pool));
-        this.pool = pool;
-    }
-
-    static Connection uncheckedBorrow(ObjectPool<Connection> pool) {
         try {
-            return pool.borrowObject();
+            connection = pool.borrowObject();
+            this.pool = pool;
         } catch (final Exception e) {
             throw new JocoteException(e);
         }
@@ -33,6 +31,11 @@ class ObjectPoolConnectionWrapper extends ConnectionWrapper {
         } catch (final Exception e) {
             LOG.warn(e.getMessage(), e);
         }
+    }
+
+    @Override
+    protected Connection connection() {
+        return connection;
     }
 
 }

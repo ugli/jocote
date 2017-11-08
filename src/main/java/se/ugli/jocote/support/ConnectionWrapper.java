@@ -9,68 +9,64 @@ import se.ugli.jocote.MessageIterator;
 import se.ugli.jocote.SessionIterator;
 import se.ugli.jocote.SessionStream;
 
-public class ConnectionWrapper implements Connection {
+public abstract class ConnectionWrapper implements Connection {
 
-    protected final Connection connection;
-
-    public ConnectionWrapper(Connection connection) {
-        this.connection = connection;
-    }
+    protected abstract Connection connection();
 
     @Override
     public void close() {
-        connection.close();
+        connection().close();
     }
 
     @Override
     public long clear() {
-        return connection.clear();
+        return connection().clear();
     }
 
     @Override
     public long messageCount() {
-        return connection.messageCount();
+        return connection().messageCount();
     }
 
     @Override
     public MessageIterator messageIterator() {
-        return connection.messageIterator();
+        return connection().messageIterator();
     }
 
     @Override
     public SessionIterator sessionIterator() {
-        return connection.sessionIterator();
+        return connection().sessionIterator();
     }
 
     @Override
     public void put(Message message) {
-        connection.put(message);
+        connection().put(message);
 
     }
 
     @Override
     public Optional<Message> get() {
-        return connection.get();
+        return connection().get();
     }
 
     @Override
     public Stream<Message> messageStream() {
-        return connection.messageStream();
+        return connection().messageStream();
     }
 
     @Override
     public SessionStream sessionStream() {
-        return connection.sessionStream();
+        return connection().sessionStream();
     }
 
     @Override
     public void put(byte[] message) {
-        connection.put(message);
+        connection().put(message);
     }
 
     @Override
     public int put(Stream<Message> messageStream) {
-        return connection.put(messageStream);
+        return connection().put(messageStream);
     }
 
 }
