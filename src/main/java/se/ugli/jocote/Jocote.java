@@ -27,6 +27,7 @@ public final class Jocote {
         tryToRegister("se.ugli.jocote.rabbitmq.RabbitMqDriver");
         tryToRegister("se.ugli.jocote.log.LogDriver");
         tryToRegister("se.ugli.jocote.smtp.SmtpDriver");
+        tryToRegister("se.ugli.jocote.beanstalk.BeanstalkDriver");
     }
 
     private static void tryToRegister(final String driver) {
