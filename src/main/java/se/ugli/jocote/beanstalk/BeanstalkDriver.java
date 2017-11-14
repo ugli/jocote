@@ -12,20 +12,17 @@ public class BeanstalkDriver implements Driver {
 
     @Override
     public String urlScheme() {
-        // TODO Auto-generated method stub
-        return null;
+        return "beanstalk";
     }
 
     @Override
     public Connection connect(JocoteUrl url) {
-        // TODO Auto-generated method stub
-        return null;
+        return new BeanstalkConnection(url);
     }
 
     @Override
     public Subscription subscribe(JocoteUrl url, Consumer<Message> consumer) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("Beanstalk has no subscription features");
     }
 
 }
