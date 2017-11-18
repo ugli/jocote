@@ -1,4 +1,4 @@
-package se.ugli.jocote.ibm.mq;
+/*package se.ugli.jocote.ibm.mq;
 
 import java.io.IOException;
 
@@ -23,3 +23,4 @@ public class IbmMqDriverTest {
     }
 
 }
+*/

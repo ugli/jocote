@@ -1,4 +1,4 @@
-package se.ugli.jocote.ibm.mq;
+/*package se.ugli.jocote.ibm.mq;
 
 import com.ibm.mq.jms.MQConnectionFactory;
 import com.ibm.mq.jms.MQQueue;
@@ -63,3 +63,4 @@ public class IbmMqDriver implements Driver {
         }
     }
 }
+*/

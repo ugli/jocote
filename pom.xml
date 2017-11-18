@@ -60,7 +60,7 @@
             <version>3.6.5</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>com.ibm.mq</groupId>
             <artifactId>com.ibm.mq</artifactId>
             <version>7.5.0.5</version>
@@ -95,7 +95,7 @@
             <artifactId>dhbcore</artifactId>
             <version>7.5.0.5</version>
             <optional>true</optional>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
@@ -204,7 +204,7 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
-            <plugin>
+            <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>1.5</version>
@@ -217,7 +217,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin> -->
         </plugins>
     </build>
     <distributionManagement>
