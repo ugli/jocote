@@ -1,6 +1,4 @@
-/*package se.ugli.jocote.ibm.mq;
-
-import java.io.IOException;
+package se.ugli.jocote.ibm.mq;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -14,13 +12,13 @@ public class IbmMqDriverTest {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Test
-    public void test() throws IOException {
+    public void test() {
         final IbmMqDriver driver = new IbmMqDriver();
-        final Connection connection = driver.connect(JocoteUrl.apply("ibmmq:///QUEUE1?ConnectionNameList=192.168.232.1(1414)&QueueManager=QMA"));
+        final Connection connection = driver
+                .connect(JocoteUrl.apply("ibmmq:///QUEUE1?ConnectionNameList=192.168.232.1(1414)&QueueManager=QMA"));
         final Object object = connection.get();
         logger.info("{}", object);
         connection.close();
     }
 
 }
-*/
