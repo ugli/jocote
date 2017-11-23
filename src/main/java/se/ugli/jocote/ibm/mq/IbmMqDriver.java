@@ -1,17 +1,23 @@
 package se.ugli.jocote.ibm.mq;
 
-import com.ibm.mq.jms.MQConnectionFactory;
-import com.ibm.mq.jms.MQQueue;
-import se.ugli.jocote.*;
-import se.ugli.jocote.jms.JmsConnection;
-import se.ugli.jocote.jms.JmsSubscription;
-import se.ugli.jocote.support.JocoteUrl;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Queue;
-import java.util.Map.Entry;
-import java.util.function.Consumer;
+
+import com.ibm.mq.jms.MQConnectionFactory;
+import com.ibm.mq.jms.MQQueue;
+
+import se.ugli.jocote.Connection;
+import se.ugli.jocote.Driver;
+import se.ugli.jocote.JocoteException;
+import se.ugli.jocote.Message;
+import se.ugli.jocote.Subscription;
+import se.ugli.jocote.jms.JmsConnection;
+import se.ugli.jocote.jms.JmsSubscription;
+import se.ugli.jocote.support.JocoteUrl;
 
 public class IbmMqDriver implements Driver {
 
@@ -34,7 +40,7 @@ public class IbmMqDriver implements Driver {
         return new JmsSubscription(connectionFactory(url), consumer, queue(url));
     }
 
-    private ConnectionFactory connectionFactory(final JocoteUrl url) {
+    private static ConnectionFactory connectionFactory(final JocoteUrl url) {
         try {
             final MQConnectionFactory connectionFactory = new MQConnectionFactory();
             connectionFactory.setTransportType(TRANSPORT_TYPE_DEFAULT_VALUE);
@@ -54,7 +60,7 @@ public class IbmMqDriver implements Driver {
         }
     }
 
-    private Queue queue(final JocoteUrl url) {
+    private static Queue queue(final JocoteUrl url) {
         try {
             return new MQQueue(url.queue);
         }
