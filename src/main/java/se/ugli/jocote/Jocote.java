@@ -9,10 +9,10 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import se.ugli.jocote.stream.flow.MessagePublisher;
 import se.ugli.jocote.support.DebugLogConnectionProxy;
 import se.ugli.jocote.support.JocoteProperties;
 import se.ugli.jocote.support.JocoteUrl;
-import se.ugli.jocote.support.MessagePublisher;
 
 public final class Jocote {
 

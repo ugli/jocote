@@ -1,4 +1,4 @@
-package se.ugli.jocote.support;
+package se.ugli.jocote.stream.flow;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
