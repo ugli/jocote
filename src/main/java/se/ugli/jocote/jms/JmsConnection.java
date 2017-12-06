@@ -1,8 +1,10 @@
 package se.ugli.jocote.jms;
 
+import static java.util.Collections.list;
+import static java.util.concurrent.CompletableFuture.runAsync;
 import static se.ugli.jocote.jms.AcknowledgeMode.AUTO_ACKNOWLEDGE;
 
-import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -38,8 +40,7 @@ public class JmsConnection extends JmsBase implements Connection {
         try {
             _connection = connectionFactory.createConnection(url.username, url.password);
             _connection.start();
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -57,9 +58,8 @@ public class JmsConnection extends JmsBase implements Connection {
     @Override
     public long messageCount() {
         try {
-            return Collections.list(jmsQueueBrowser().getEnumeration()).size();
-        }
-        catch (final JMSException e) {
+            return list(jmsQueueBrowser().getEnumeration()).size();
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -83,13 +83,14 @@ public class JmsConnection extends JmsBase implements Connection {
     }
 
     @Override
-    public void put(final Message message) {
-        try {
-            jmsMessageProducer().send(JmsMessageFactory.create(jmsSession(), message));
-        }
-        catch (final JMSException e) {
-            throw new JocoteException(e);
-        }
+    public CompletableFuture<Void> put(final Message message) {
+        return runAsync(() -> {
+            try {
+                jmsMessageProducer().send(JmsMessageFactory.create(jmsSession(), message));
+            } catch (final JMSException | RuntimeException e) {
+                throw new JocoteException(e);
+            }
+        }, executor());
     }
 
     public MessageConsumer jmsMessageConsumer() {
@@ -97,8 +98,7 @@ public class JmsConnection extends JmsBase implements Connection {
             if (_messageConsumer == null)
                 _messageConsumer = jmsSession().createConsumer(queue);
             return _messageConsumer;
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -108,8 +108,7 @@ public class JmsConnection extends JmsBase implements Connection {
             if (_messageProducer == null)
                 _messageProducer = jmsSession().createProducer(queue);
             return _messageProducer;
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -119,8 +118,7 @@ public class JmsConnection extends JmsBase implements Connection {
             if (_session == null)
                 _session = jmsConnection().createSession(false, AUTO_ACKNOWLEDGE.mode);
             return _session;
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }
@@ -130,8 +128,7 @@ public class JmsConnection extends JmsBase implements Connection {
             if (_queueBrowser == null)
                 _queueBrowser = jmsSession().createBrowser(queue);
             return _queueBrowser;
-        }
-        catch (final JMSException e) {
+        } catch (final JMSException e) {
             throw new JocoteException(e);
         }
     }

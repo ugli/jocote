@@ -1,15 +1,21 @@
 package se.ugli.jocote.ram;
 
 import static java.util.UUID.randomUUID;
+import static java.util.concurrent.CompletableFuture.runAsync;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import se.ugli.jocote.Connection;
+import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.MessageIterator;
 import se.ugli.jocote.SessionIterator;
@@ -18,6 +24,7 @@ import se.ugli.jocote.support.JocoteUrl;
 
 class RamConnection implements Connection {
 
+    private Logger LOG = LoggerFactory.getLogger(RamConnection.class);
     private final JocoteUrl url;
     private final Queue<Message> queue = new ConcurrentLinkedQueue<>();
     private final List<Consumer<Message>> subscribers = new ArrayList<>();
@@ -28,6 +35,7 @@ class RamConnection implements Connection {
 
     @Override
     public void close() {
+        LOG.info("Closing connection: {}", url);
     }
 
     @Override
@@ -53,12 +61,18 @@ class RamConnection implements Connection {
     }
 
     @Override
-    public void put(final Message message) {
-        final Message cloneWithId = cloneWithId(message, randomUUID().toString());
-        if (subscribers.isEmpty())
-            queue.offer(cloneWithId);
-        else
-            randomSubscriber().accept(cloneWithId);
+    public CompletableFuture<Void> put(final Message message) {
+        return runAsync(() -> {
+            try {
+                final Message cloneWithId = cloneWithId(message, randomUUID().toString());
+                if (subscribers.isEmpty())
+                    queue.offer(cloneWithId);
+                else
+                    randomSubscriber().accept(cloneWithId);
+            } catch (final RuntimeException e) {
+                throw new JocoteException(e);
+            }
+        }, executor());
     }
 
     private Message cloneWithId(final Message msg, final String id) {

@@ -2,6 +2,9 @@ package se.ugli.jocote;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
 import org.slf4j.Logger;
@@ -15,6 +18,15 @@ public final class Jocote {
 
     private final static Logger logger = LoggerFactory.getLogger(Jocote.class);
     private static final Map<String, Driver> drivers = new ConcurrentHashMap<>();
+    
+    public final static Executor defaultExecutor = Executors.newSingleThreadExecutor(new ThreadFactory() {
+
+        @Override
+        public Thread newThread(Runnable target) {
+            return new Thread(target, "jocote_default");
+        }
+    });
+
 
     static {
         tryToRegister("se.ugli.jocote.activemq.ActiveMqDriver");

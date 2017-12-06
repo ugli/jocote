@@ -1,6 +1,7 @@
 package se.ugli.jocote.support;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,9 +112,9 @@ public class DebugLogConnectionProxy implements Connection {
     }
 
     @Override
-    public void put(final Message message) {
+    public CompletableFuture<Void> put(final Message message) {
         if (logger.isDebugEnabled())
             logger.debug("[{}] put: {}", connection, message);
-        connection.put(message);
+        return connection.put(message);
     }
 }

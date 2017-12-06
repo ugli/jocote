@@ -1,8 +1,11 @@
 package se.ugli.jocote.rabbitmq;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
@@ -40,8 +43,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
             sessionIteratorChannelCloseDelayMs = sessionIteratorChannelCloseDelayMs(url);
             arguments = arguments(url);
             channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
-        }
-        catch (final IOException e) {
+        } catch (final IOException e) {
             throw new JocoteException(e);
         }
     }
@@ -92,8 +94,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     public long clear() {
         try {
             return channel.queuePurge(queue).getMessageCount();
-        }
-        catch (final IOException e) {
+        } catch (final IOException e) {
             throw new JocoteException(e);
         }
     }
@@ -102,8 +103,7 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     public long messageCount() {
         try {
             return channel.messageCount(queue);
-        }
-        catch (final IOException e) {
+        } catch (final IOException e) {
             throw new JocoteException(e);
         }
     }
@@ -120,14 +120,15 @@ public class RabbitMqConnection extends RabbitMqBase implements Connection {
     }
 
     @Override
-    public void put(final Message message) {
-        try {
-            final BasicProperties props = new BasicPropertiesFactory(durable).create(message);
-            channel.basicPublish("", queue, props, message.body());
-        }
-        catch (final IOException e) {
-            throw new JocoteException(e);
-        }
+    public CompletableFuture<Void> put(final Message message) {
+        return runAsync(() -> {
+            try {
+                final BasicProperties props = new BasicPropertiesFactory(durable).create(message);
+                channel.basicPublish("", queue, props, message.body());
+            } catch (final IOException | RuntimeException e) {
+                throw new JocoteException(e);
+            }
+        }, executor());
     }
 
     public com.rabbitmq.client.Connection rabbitConnection() {

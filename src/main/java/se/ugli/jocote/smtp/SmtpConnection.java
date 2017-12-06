@@ -1,6 +1,9 @@
 package se.ugli.jocote.smtp;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+
 import java.util.Properties;
+import java.util.concurrent.CompletableFuture;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -32,20 +35,21 @@ public class SmtpConnection extends GetNotSupportedConnection {
     }
 
     @Override
-    public void put(final Message msg) {
-        try {
-            final String from = (String) msg.headers().get("from");
-            final String to = (String) msg.headers().get("to");
-            final MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(from));
-            message.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(to));
-            message.setSubject((String) msg.headers().get("subject"));
-            message.setText(new String(msg.body()));
-            Transport.send(message);
-        }
-        catch (final RuntimeException | MessagingException e) {
-            throw new JocoteException(e);
-        }
+    public CompletableFuture<Void> put(final Message msg) {
+        return runAsync(() -> {
+            try {
+                final String from = (String) msg.headers().get("from");
+                final String to = (String) msg.headers().get("to");
+                final MimeMessage message = new MimeMessage(session);
+                message.setFrom(new InternetAddress(from));
+                message.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(to));
+                message.setSubject((String) msg.headers().get("subject"));
+                message.setText(new String(msg.body()));
+                Transport.send(message);
+            } catch (final RuntimeException | MessagingException e) {
+                throw new JocoteException(e);
+            }
+        }, executor());
     }
 
     @Override

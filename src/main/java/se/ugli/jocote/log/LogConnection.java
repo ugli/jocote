@@ -1,6 +1,9 @@
 package se.ugli.jocote.log;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +24,7 @@ class LogConnection extends GetNotSupportedConnection {
         this.url = url;
         try {
             this.level = Level.valueOf(url.queue.toUpperCase());
-        }
-        catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new JocoteException("Valid queues: " + Arrays.asList(Level.values()));
         }
     }
@@ -32,17 +34,23 @@ class LogConnection extends GetNotSupportedConnection {
     }
 
     @Override
-    public void put(final Message message) {
-        if (level == Level.ERROR)
-            logger.error("Message: {}", message);
-        else if (level == Level.WARN)
-            logger.warn("Message: {}", message);
-        else if (level == Level.INFO)
-            logger.info("Message: {}", message);
-        else if (level == Level.DEBUG)
-            logger.debug("Message: {}", message);
-        else if (level == Level.TRACE)
-            logger.trace("Message: {}", message);
+    public CompletableFuture<Void> put(final Message message) {
+        return runAsync(() -> {
+            try {
+                if (level == Level.ERROR)
+                    logger.error("Message: {}", message);
+                else if (level == Level.WARN)
+                    logger.warn("Message: {}", message);
+                else if (level == Level.INFO)
+                    logger.info("Message: {}", message);
+                else if (level == Level.DEBUG)
+                    logger.debug("Message: {}", message);
+                else if (level == Level.TRACE)
+                    logger.trace("Message: {}", message);
+            } catch (final RuntimeException e) {
+                throw new JocoteException(e);
+            }
+        }, executor());
     }
 
     @Override

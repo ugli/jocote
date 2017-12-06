@@ -1,9 +1,12 @@
 package se.ugli.jocote.lpr;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -21,8 +24,8 @@ class LprConnection extends GetNotSupportedConnection {
     private final Socket socket;
 
     /*
-     * By default prints all files as raw binary data.
-     * Set this value to false to use the text formatting of the spooler on the host.
+     * By default prints all files as raw binary data. Set this value to false
+     * to use the text formatting of the spooler on the host.
      */
     private final boolean printRaw;
     private final AtomicInteger jobNumber = new AtomicInteger(0);
@@ -36,8 +39,7 @@ class LprConnection extends GetNotSupportedConnection {
             printRaw = printRaw(url);
             printerName = url.queue;
             socket = SocketFactory.create(hostName, port(url), useOutOfBoundsPorts(url));
-        }
-        catch (final IOException e) {
+        } catch (final IOException e) {
             throw new JocoteException(e);
         }
     }
@@ -71,41 +73,41 @@ class LprConnection extends GetNotSupportedConnection {
     public void close() {
         try {
             socket.close();
-        }
-        catch (final RuntimeException | IOException e) {
+        } catch (final RuntimeException | IOException e) {
             logger.warn("Couldn't close connection: " + e.getMessage());
         }
     }
 
     @Override
-    public void put(final Message message) {
-        try {
-            //Job number cycles from 001 to 999
-            if (jobNumber.incrementAndGet() >= 1000)
-                jobNumber.set(1);
-            final Printer printer = new Printer(socket, jobNumber.get(), printRaw);
-            final Object fileObj = message.properties().get("file");
-            if (fileObj == null)
-                printer.printBytes(message.body(), hostName, printerName,
-                        message.properties().getOrDefault("documentName", "untitled").toString());
-            else {
-                File file;
-                if (fileObj instanceof String)
-                    file = new File((String) fileObj);
-                else if (fileObj instanceof File)
-                    file = (File) fileObj;
-                else if (fileObj instanceof Path)
-                    file = ((Path) fileObj).toFile();
-                else
-                    throw new IllegalArgumentException(fileObj.getClass().getName());
-                final String documentName = message.properties().getOrDefault("documentName", file.getName()).toString();
-                printer.printFile(file, hostName, printerName, documentName);
+    public CompletableFuture<Void> put(final Message message) {
+        return runAsync(() -> {
+            try {
+                // Job number cycles from 001 to 999
+                if (jobNumber.incrementAndGet() >= 1000)
+                    jobNumber.set(1);
+                final Printer printer = new Printer(socket, jobNumber.get(), printRaw);
+                final Object fileObj = message.properties().get("file");
+                if (fileObj == null)
+                    printer.printBytes(message.body(), hostName, printerName,
+                            message.properties().getOrDefault("documentName", "untitled").toString());
+                else {
+                    File file;
+                    if (fileObj instanceof String)
+                        file = new File((String) fileObj);
+                    else if (fileObj instanceof File)
+                        file = (File) fileObj;
+                    else if (fileObj instanceof Path)
+                        file = ((Path) fileObj).toFile();
+                    else
+                        throw new IllegalArgumentException(fileObj.getClass().getName());
+                    final String documentName = message.properties().getOrDefault("documentName", file.getName())
+                            .toString();
+                    printer.printFile(file, hostName, printerName, documentName);
+                }
+            } catch (final IOException | RuntimeException e) {
+                throw new JocoteException(e);
             }
-        }
-        catch (final IOException e) {
-            throw new JocoteException(e);
-        }
-
+        }, executor());
     }
 
     @Override

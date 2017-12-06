@@ -1,7 +1,7 @@
 package se.ugli.jocote.support;
 
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -31,23 +31,6 @@ public class ReconnectableConnection implements Connection {
         LOG.info("Reconnect: {}", url);
         connection.close();
         this.connection = Jocote.connect(url);
-    }
-
-    private void retryConsume(final Consumer<Connection> connectionConsumer) {
-        try {
-            connectionConsumer.accept(connection);
-        } catch (final RuntimeException e1) {
-            try {
-                LOG.error(e1.getMessage(), e1);
-                reconnect();
-                LOG.warn("Retrying call...");
-                connectionConsumer.accept(connection);
-                LOG.info("Retry succeeded.");
-            } catch (final RuntimeException e2) {
-                LOG.error("Retry failed: " + e2.getMessage(), e2);
-                throw e2;
-            }
-        }
     }
 
     private <T> T retryFunction(final Function<Connection, T> connectionFunction) {
@@ -99,17 +82,17 @@ public class ReconnectableConnection implements Connection {
     }
 
     @Override
-    public void put(byte[] message) {
-        retryConsume(c -> c.put(message));
+    public CompletableFuture<Void> put(byte[] message) {
+        return retryFunction(c -> c.put(message));
     }
 
     @Override
-    public void put(final Message message) {
-        retryConsume(c -> c.put(message));
+    public CompletableFuture<Void> put(final Message message) {
+        return retryFunction(c -> c.put(message));
     }
 
     @Override
-    public int put(Stream<Message> messageStream) {
+    public CompletableFuture<Long> put(Stream<Message> messageStream) {
         return retryFunction(c -> c.put(messageStream));
     }
 

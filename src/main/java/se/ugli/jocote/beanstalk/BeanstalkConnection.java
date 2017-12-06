@@ -1,10 +1,14 @@
 package se.ugli.jocote.beanstalk;
 
+import static java.util.concurrent.CompletableFuture.runAsync;
+
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import com.surftools.BeanstalkClientImpl.ClientImpl;
 
 import se.ugli.jocote.Connection;
+import se.ugli.jocote.JocoteException;
 import se.ugli.jocote.Message;
 import se.ugli.jocote.MessageIterator;
 import se.ugli.jocote.SessionIterator;
@@ -50,12 +54,18 @@ class BeanstalkConnection implements Connection {
     }
 
     @Override
-    public void put(Message message) {
-        final long priority = message.headerAsLong(PUT_HEADER_PRIORITY, DEFAULT_PUT_PRIORITY);
-        final int delaySeconds = message.headerAsInteger(PUT_HEADER_DELAY_SECONDS, DEFAULT_PUT_DELAY_SECONDS);
-        final int timeToRun = message.headerAsInteger(PUT_HEADER_TIME_TO_RUN, DEFAULT_PUT_TIME_TO_RUN);
-        final byte[] data = message.body();
-        client.put(priority, delaySeconds, timeToRun, data);
+    public CompletableFuture<Void> put(final Message message) {
+        return runAsync(() -> {
+            try {
+                final long priority = message.headerAsLong(PUT_HEADER_PRIORITY, DEFAULT_PUT_PRIORITY);
+                final int delaySeconds = message.headerAsInteger(PUT_HEADER_DELAY_SECONDS, DEFAULT_PUT_DELAY_SECONDS);
+                final int timeToRun = message.headerAsInteger(PUT_HEADER_TIME_TO_RUN, DEFAULT_PUT_TIME_TO_RUN);
+                final byte[] data = message.body();
+                client.put(priority, delaySeconds, timeToRun, data);
+            } catch (final RuntimeException e) {
+                throw new JocoteException(e);
+            }
+        }, executor());
     }
 
     @Override

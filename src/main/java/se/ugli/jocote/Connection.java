@@ -1,8 +1,8 @@
 package se.ugli.jocote;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
 import se.ugli.jocote.support.Streams;
@@ -20,7 +20,7 @@ public interface Connection extends AutoCloseable {
 
     SessionIterator sessionIterator();
 
-    void put(Message message);
+    CompletableFuture<Void> put(Message message);
 
     default Optional<Message> get() {
         return messageIterator().next();
@@ -34,16 +34,18 @@ public interface Connection extends AutoCloseable {
         return Streams.sessionStream(sessionIterator());
     }
 
-    default void put(final byte[] message) {
-        put(Message.builder().body(message).build());
+    default CompletableFuture<Void> put(final byte[] message) {
+        return put(Message.builder().body(message).build());
     }
 
-    default int put(final Stream<Message> messageStream) {
-        final List<Boolean> counter = new ArrayList<>();
-        messageStream.forEach(m -> {
-            put(m);
-            counter.add(true);
-        });
-        return counter.size();
+    default CompletableFuture<Long> put(final Stream<Message> messageStream) {
+        return CompletableFuture.supplyAsync(() -> {
+            return messageStream.map(this::put).map(CompletableFuture::join).count();
+        }, executor());
     }
+
+    default Executor executor() {
+        return Jocote.defaultExecutor;
+    }
+
 }

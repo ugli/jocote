@@ -1,6 +1,7 @@
 package se.ugli.jocote.support;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import se.ugli.jocote.Connection;
@@ -39,8 +40,8 @@ public abstract class ConnectionWrapper implements Connection {
     }
 
     @Override
-    public void put(Message message) {
-        connection().put(message);
+    public CompletableFuture<Void> put(Message message) {
+        return connection().put(message);
 
     }
 
@@ -60,12 +61,12 @@ public abstract class ConnectionWrapper implements Connection {
     }
 
     @Override
-    public void put(byte[] message) {
-        connection().put(message);
+    public CompletableFuture<Void> put(byte[] message) {
+        return connection().put(message);
     }
 
     @Override
-    public int put(Stream<Message> messageStream) {
+    public CompletableFuture<Long> put(Stream<Message> messageStream) {
         return connection().put(messageStream);
     }
 
